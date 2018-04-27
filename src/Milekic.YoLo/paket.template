@@ -1,0 +1,13 @@
+type project
+title
+    Milekic.YoLo
+owners
+    Nikola Milekic
+authors
+    Nikola Milekic
+projectUrl
+    https://github.com/nikolamilekic/Milekic.YoLo
+licenseUrl
+    https://github.com/nikolamilekic/Milekic.YoLo/blob/master/LICENSE.txt
+requireLicenseAcceptance
+    false
