@@ -82,7 +82,7 @@ Target.create "BumpVersion" <| fun _ ->
         | line -> line)
     |> fun lines -> File.WriteAllLines(appveyorPath, lines)
     Staging.stageAll ""
-    Commit.exec "" (sprintf "Bump version to %s" releaseNotes.NugetVersion)
+    Commit.exec "" (sprintf "Bump version to %s" releaseNotes.AssemblyVersion)
 Target.create "Release" <| fun _ ->
     let remote =
         CommandHelper.getGitResult "" "remote -v"
