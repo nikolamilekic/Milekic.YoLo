@@ -18,6 +18,10 @@ module Update =
                           |> Update
     let inline map f = (f >> liftValue) |> bind
 
+    module Operators =
+        let inline (>>=) e f = bind f e
+        let inline (>>-) e f = map f e
+
     type Builder() =
         member inline __.Return x = liftValue x
         member __.ReturnFrom x = x
