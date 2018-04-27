@@ -27,6 +27,7 @@ let productName = "Milekic.YoLo"
 let gitOwner = "nikolamilekic"
 let gitHome = "https://github.com/" + gitOwner
 let releaseNotes = ReleaseNotes.load "RELEASE_NOTES.md"
+let buildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
 
 Target.create "Clean" <| fun _ ->
     Seq.allPairs [|"src"; "tests"|] [|"bin"; "obj"|]
@@ -43,7 +44,7 @@ Target.create "Test" <| fun _ ->
     |> List.iter (fun r -> if r.ExitCode <> 0 then failwith "Tests failed")
 Target.create "UpdateAssemblyInfo" <| fun _ ->
     let version =
-        match Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER" with
+        match buildNumber with
         | None -> releaseNotes.AssemblyVersion
         | Some buildNumber ->
             let assemblyVersion = SemVer.parse(releaseNotes.AssemblyVersion)
@@ -111,13 +112,17 @@ Target.create "CopyBinaries" <| fun _ ->
         Shell.copyDir target source (fun _ -> true))
 Target.create "Nuget" <| fun _ ->
     let isAppVeyor = Environment.environVarAsBool "APPVEYOR"
+    let prerelease = releaseNotes.SemVer.PreRelease |> Option.isSome
     let fromTag = Environment.environVarAsBool "APPVEYOR_REPO_TAG"
-    if isAppVeyor && (not fromTag) then () else
-    Paket.pack (fun p ->
-        { p with
-            OutputPath = "bin"
-            Version = releaseNotes.NugetVersion
-            ReleaseNotes = String.toLines releaseNotes.Notes})
+    let version = match buildNumber with
+                  | Some buildNumber when prerelease
+                      -> sprintf "%s.%s" releaseNotes.NugetVersion buildNumber
+                  | _ -> releaseNotes.NugetVersion
+    if not isAppVeyor || prerelease || fromTag then
+        Paket.pack (fun p ->
+            { p with OutputPath = "bin"
+                     Version = version
+                     ReleaseNotes = String.toLines releaseNotes.Notes } )
 Target.create "AppVeyor" DoNothing
 
 Target.create "Rebuild" DoNothing
