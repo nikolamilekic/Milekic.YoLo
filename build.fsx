@@ -89,11 +89,11 @@ Target.create "Release" <| fun _ ->
         |> Seq.tryFind (fun s -> s.Contains(gitOwner + "/" + productName))
         |> function | None -> gitHome + "/" + productName
                     | Some s -> s.Split().[0]
+    let token = Environment.environVarOrFail "GitHubToken"
     let version = releaseNotes.NugetVersion
     Branches.tag "" version
     Branches.pushTag "" remote version
-    Environment.environVarOrFail "GitHubToken"
-    |> GitHub.createClientWithToken
+    GitHub.createClientWithToken token
     |> GitHub.draftNewRelease
         gitOwner
         productName
