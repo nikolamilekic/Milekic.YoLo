@@ -1,4 +1,7 @@
-### 0.2-dev - Unreleased
+### 1.0 - 2018/12/16
+* Un/curry and flip
+* atomicUpdateQuery
+* List, Seq onlySome
 
 ### 0.1 - 2018/04/27
 * Initial release
