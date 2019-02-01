@@ -1,5 +1,6 @@
 namespace Milekic.YoLo
 
+[<NoComparison; NoEquality>]
 type Eventually<'a> =
     | Done of 'a
     | NotDone of (unit -> Eventually<'a>)

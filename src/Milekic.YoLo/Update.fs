@@ -1,5 +1,6 @@
 namespace Milekic.YoLo
 
+[<NoComparison; NoEquality>]
 type Update<'s, 'u, 'a> = Update of ('s -> 'u * 'a)
 module Update =
     let inline unit< ^u when ^u : (static member Unit : ^u)> : ^u =
@@ -29,6 +30,7 @@ module Update =
         member inline __.Zero() = liftValue ()
         member inline __.Delay(f) = bind f (liftValue ())
 
+[<NoComparison; NoEquality>]
 type SimpleUpdate<'s> =
     | DoNothing
     | ApplySimpleUpdate of ('s -> 's)
