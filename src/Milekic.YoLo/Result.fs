@@ -24,6 +24,7 @@ let traverse f source =
                                 f element >>= (fun head ->
                                 Ok (head::tail)))
     List.foldBack folder source (Ok [])
+let sequence source = traverse id source
 
 type Builder() =
     member __.Bind(e, f) = bind f e
