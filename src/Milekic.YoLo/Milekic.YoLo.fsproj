@@ -15,6 +15,7 @@
     <Compile Include="Eventually.fs" />
     <Compile Include="Update.fs" />
     <Compile Include="Option.fs" />
+    <Compile Include="Validation.fs" />
     <Compile Include="AutoOpen.fs" />
   </ItemGroup>
 
