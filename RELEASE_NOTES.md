@@ -1,5 +1,7 @@
 ### 1.1-dev - Unreleased
 * Add nameOf, instanceOf operators
+* Range validation
+* Additional Result operators, sequence function and Builder methods
 
 ### 1.0 - 2018/12/16
 * Un/curry and flip
