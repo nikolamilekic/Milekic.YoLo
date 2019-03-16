@@ -25,8 +25,8 @@ open Operators
 
 let traverse f source =
     let folder element state = state >>= (fun tail ->
-                                f element >>= (fun head ->
-                                Ok (head::tail)))
+                               f element >>= (fun head ->
+                               Ok (head::tail)))
     List.foldBack folder source (Ok [])
 let sequence source = traverse id source
 

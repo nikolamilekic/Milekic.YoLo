@@ -10,11 +10,12 @@ module Update =
     let inline apply< ^s, ^u when ^u : (static member Apply : ^s * ^u -> ^s)>
         (state, update) : ^s =
         (^u : (static member Apply : ^s * ^u -> ^s) (state, update))
-    let run state (Update f) = f state
     let inline liftValue x = Update (fun _ -> (unit, x))
-    let inline bind f e = fun s0 -> let (u1, r1) = run s0 e
+    let inline bind f e = fun s0 -> let (Update eF) = e
+                                    let (u1, r1) = eF s0
+                                    let (Update eContinuation) = f r1
                                     let s1 = apply (s0, u1)
-                                    let (u2, r2) = run s1 (f r1)
+                                    let (u2, r2) = eContinuation s1
                                     combine (u1, u2), r2
                           |> Update
     let inline map f = (f >> liftValue) |> bind
@@ -22,6 +23,11 @@ module Update =
     let inline read f = (fun state -> unit, f state) |> Update
     let inline getState<'s, ^u when ^u : (static member Unit : ^u)>
         : Update<'s, ^u, 's> = read id
+
+    let inline run state =
+        bind (fun x -> Update (fun s -> unit, (x, s)))
+        >> fun (Update f) -> f state
+        >> snd
 
     module Operators =
         let inline (>>=) e f = bind f e
