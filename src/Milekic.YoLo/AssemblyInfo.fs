@@ -4,12 +4,12 @@ open System.Reflection
 
 [<assembly: AssemblyTitleAttribute("Milekic.YoLo")>]
 [<assembly: AssemblyProductAttribute("Milekic.YoLo")>]
-[<assembly: AssemblyVersionAttribute("1.1")>]
-[<assembly: AssemblyFileVersionAttribute("1.1")>]
+[<assembly: AssemblyVersionAttribute("2.0")>]
+[<assembly: AssemblyFileVersionAttribute("2.0")>]
 do ()
 
 module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyTitle = "Milekic.YoLo"
     let [<Literal>] AssemblyProduct = "Milekic.YoLo"
-    let [<Literal>] AssemblyVersion = "1.1"
-    let [<Literal>] AssemblyFileVersion = "1.1"
+    let [<Literal>] AssemblyVersion = "2.0"
+    let [<Literal>] AssemblyFileVersion = "2.0"

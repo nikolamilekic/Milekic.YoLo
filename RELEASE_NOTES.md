@@ -1,4 +1,4 @@
-### 1.1-dev - Unreleased
+### 2.0-dev - Unreleased
 * Add nameOf, instanceOf operators
 * Range validation
 * Additional Result operators, sequence function and Builder methods
