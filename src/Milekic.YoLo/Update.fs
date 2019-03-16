@@ -19,6 +19,10 @@ module Update =
                           |> Update
     let inline map f = (f >> liftValue) |> bind
 
+    let inline read f = (fun state -> unit, f state) |> Update
+    let inline getState<'s, ^u when ^u : (static member Unit : ^u)>
+        : Update<'s, ^u, 's> = read id
+
     module Operators =
         let inline (>>=) e f = bind f e
         let inline (>>-) e f = map f e
@@ -46,6 +50,3 @@ type SimpleUpdate<'s> =
 module SimpleUpdate =
     let applyUpdate updateF : Update<'s, SimpleUpdate<'s>, unit> =
         (fun _ -> ApplySimpleUpdate updateF, ()) |> Update
-    let read f : Update<'s, SimpleUpdate<_>, _> =
-        (fun state -> DoNothing, f state) |> Update
-    let get<'s> : Update<'s, SimpleUpdate<'s>, _> = read id

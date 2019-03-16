@@ -1,4 +1,6 @@
 ### 2.0-dev - Unreleased
+* (Breaking change) SimpleUpdate.read moved to Update module
+* (Breaking change) SimpleUpdate.get is now Update.getState
 * Add nameOf, instanceOf operators
 * Range validation
 * Additional Result operators, sequence function and Builder methods
