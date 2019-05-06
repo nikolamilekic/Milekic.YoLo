@@ -44,15 +44,21 @@ module Update =
 type SimpleUpdate<'s> =
     | DoNothing
     | ApplySimpleUpdate of ('s -> 's)
+    | SetNewState of 's
     static member Apply (s, u) = match u with | DoNothing -> s
                                               | ApplySimpleUpdate f -> f s
+                                              | SetNewState newState -> newState
     static member Unit : SimpleUpdate<'s> = DoNothing
     static member Combine(a, b) =
         match (a, b) with
         | DoNothing, x
         | x, DoNothing -> x
         | ApplySimpleUpdate a, ApplySimpleUpdate b -> ApplySimpleUpdate (a >> b)
+        | SetNewState s, ApplySimpleUpdate f -> SetNewState (f s)
+        | _, SetNewState s -> SetNewState s
 
 module SimpleUpdate =
     let applyUpdate updateF : Update<'s, SimpleUpdate<'s>, unit> =
         (fun _ -> ApplySimpleUpdate updateF, ()) |> Update
+    let setNewState newState : Update<'s, SimpleUpdate<'s>, unit> =
+        (fun _ -> SetNewState newState, ()) |> Update
