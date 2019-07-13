@@ -1,5 +1,7 @@
 namespace Milekic.YoLo
 
+open System
+
 [<NoComparison; NoEquality>]
 type Update<'s, 'u, 'a> = Update of ('s -> 'u * 'a)
 module Update =
@@ -19,19 +21,29 @@ module Update =
                                     combine (u1, u2), r2
                           |> Update
     let inline map f = (f >> liftValue) |> bind
+    let inline delay f = liftValue () |> bind f
 
     let inline read f = (fun state -> unit, f state) |> Update
     let inline getState<'s, ^u when ^u : (static member Unit : ^u)>
         : Update<'s, ^u, 's> = read id
 
-    let inline run state =
+    let inline runWithUpdate state =
         bind (fun x -> Update (fun s -> unit, (x, s)))
         >> fun (Update f) -> f state
-        >> snd
+    let inline run state = runWithUpdate state >> snd
 
     module Operators =
         let inline (>>=) e f = bind f e
         let inline (>>-) e f = map f e
+
+    open Operators
+    let inline traverse f source =
+        let folder state element = state >>= (fun elements ->
+                                   f element >>= (fun element ->
+                                   liftValue (element::elements)))
+        Seq.fold folder (liftValue []) source
+        >>- List.rev
+    let inline sequence source = traverse id source
 
     type Builder() =
         member inline __.Return x = liftValue x
@@ -39,6 +51,17 @@ module Update =
         member inline __.Bind(e, f) = bind f e
         member inline __.Zero() = liftValue ()
         member inline __.Delay(f) = bind f (liftValue ())
+        member inline __.TryWith(e, handler) =
+            fun state ->
+                try let u, (x, _) = runWithUpdate state e in u, x
+                with e -> let u, (x, _) = runWithUpdate state (handler e) in u, x
+            |> Update
+        member inline __.TryFinally(e, compensation) =
+            fun state -> try let u, (x, _) = runWithUpdate state e in u, x
+                         finally compensation()
+            |> Update
+        member inline this.Using(d : #IDisposable, f) =
+            this.TryFinally(delay (fun () -> f d), d.Dispose)
 
 [<NoComparison; NoEquality>]
 type SimpleUpdate<'s> =

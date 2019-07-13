@@ -12,6 +12,15 @@ let isError e = isOk e |> not
 let defaultWith f = either id f
 let defaultValue x = defaultWith (fun _ -> x)
 let failOnError message = defaultWith <| fun _ -> failwith message
+let traverse f (source : _ seq) =
+    use enumerator = source.GetEnumerator()
+    let rec inner state =
+        if enumerator.MoveNext() = false then Ok (state |> List.rev) else
+        match f enumerator.Current with
+        | Error x -> Error x
+        | Ok x -> inner (x::state)
+    inner []
+let sequence source = traverse id source
 
 module Operators =
     let inline (>>=) e f = bind f e
@@ -20,15 +29,6 @@ module Operators =
     let inline (>>-!) x f = Result.mapError f x
     let inline (>>-!.) x error = Result.mapError (fun _ -> error) x
     let inline (>>-.) x value = Result.map (fun _ -> value) x
-
-open Operators
-
-let traverse f source =
-    let folder element state = state >>= (fun tail ->
-                               f element >>= (fun head ->
-                               Ok (head::tail)))
-    List.foldBack folder source (Ok [])
-let sequence source = traverse id source
 
 type Builder() =
     member __.Bind(e, f) = bind f e

@@ -6,6 +6,7 @@
 * Range validation
 * Additional Result operators, sequence function and Builder methods
 * UpdateResult
+* Improved TryWith, TryFinally and Using Builder methods
 
 ### 1.0 - 2018/12/16
 * Un/curry and flip

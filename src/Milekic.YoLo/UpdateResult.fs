@@ -29,15 +29,17 @@ module UpdateResult =
                 Update.map f1 x |> Free
         inner
     let inline delay f = liftValue () |> bind f
-    let inline run state =
-        let rec inner state = function
-            | Pure x -> Ok (x, state)
+    let inline runWithUpdate state =
+        let rec inner (state, update) = function
+            | Pure x -> Ok (update, (x, state))
             | Free x ->
-                let next, nextState = Update.run state x
-                match next with
-                | Ok x -> inner nextState x
+                let extraUpdate, (result, state) = Update.runWithUpdate state x
+                let update = Update.combine(update, extraUpdate)
+                match result with
+                | Ok x -> inner (state, update) x
                 | Error e -> Error e
-        inner state
+        inner (state, Update.unit)
+    let inline run state = runWithUpdate state >> Result.map snd
 
     module Operators =
         let inline (>>=) e f = bind f e
@@ -47,16 +49,6 @@ module UpdateResult =
         let inline (>>-!.) x error = mapError (fun _ -> error) x
         let inline (>>-.) x value = map (fun _ -> value) x
 
-    open Operators
-
-    let inline traverse f source =
-        let folder state element = state >>= (fun head ->
-                                   f element >>= (fun tail ->
-                                   liftValue (tail::head)))
-        List.fold folder (liftValue []) source
-        >>- List.rev
-    let inline sequence source = traverse id source
-
     type Builder() =
         member inline __.Bind(e, f) = bind f e
         member inline __.Return x = liftValue x
@@ -64,7 +56,36 @@ module UpdateResult =
         member inline __.Zero () = liftValue ()
         member inline __.Delay f = delay f
         member __.Run f = f
-        member __.TryWith(f, handler) = try f() with e -> handler e
-        member __.TryFinally(f, compensation) = try f() finally compensation()
-        member this.Using(d : #IDisposable, f) =
-            this.TryFinally((fun () -> f d), d.Dispose)
+        member inline __.TryWith(e, handler) =
+            fun state ->
+                try match runWithUpdate state e with
+                    | Ok (u, (x, _)) -> u, (Ok x)
+                    | Error e -> Update.unit, (Error e)
+                with e ->
+                    match runWithUpdate state (handler e) with
+                    | Ok (u, (x, _)) -> u, (Ok x)
+                    | Error e -> Update.unit, (Error e)
+            |> Update
+            |> wrap
+        member inline __.TryFinally(e, compensation) =
+            fun state -> try match runWithUpdate state e with
+                             | Ok (u, (x, _)) -> u, (Ok x)
+                             | Error e -> Update.unit, (Error e)
+                         finally compensation()
+            |> Update
+            |> wrap
+        member inline this.Using(d : #IDisposable, f) =
+            this.TryFinally(delay (fun () -> f d), d.Dispose)
+
+    let updateResult = Builder()
+    let inline traverse f (source : _ seq) = updateResult {
+        use enumerator = source.GetEnumerator()
+        let rec inner state = updateResult {
+            if enumerator.MoveNext() = false then return List.rev state else
+            let! x = f enumerator.Current
+            return! inner (x::state)
+        }
+        let! result = inner []
+        return result
+    }
+    let inline sequence source = traverse id source
