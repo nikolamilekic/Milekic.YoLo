@@ -7,7 +7,6 @@ nuget Fake.DotNet.Cli
 nuget Fake.DotNet.Paket
 nuget Fake.IO.FileSystem
 nuget Fake.Runtime
-nuget Fake.DotNet.Paket
 nuget Fake.Tools.Git
 nuget FSharp.Core //"
 #load "./.fake/build.fsx/intellisense.fsx"
@@ -30,13 +29,21 @@ let gitHome = "https://github.com/" + gitOwner
 let releaseNotes = ReleaseNotes.load "RELEASE_NOTES.md"
 let buildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
 
-Target.create "PaketRestore" <| fun _ -> Paket.restore id
 Target.create "Clean" <| fun _ ->
     Seq.allPairs [|"src"; "tests"|] [|"bin"; "obj"|]
     |> Seq.collect (fun (x, y) -> !!(sprintf "%s/**/%s" x y))
     |> Seq.append [|"bin"; "obj"|]
     |> Shell.deleteDirs
-Target.create "Build" <| fun _ -> DotNet.build id (productName + ".sln")
+Target.create "Build" <| fun _ ->
+    Paket.restore id
+    DotNet.build id (productName + ".sln")
+
+    !! "src/**/*.fsproj"
+    |>  Seq.map (fun projectPath ->
+        (Path.GetDirectoryName projectPath) </> "bin/Release",
+        "bin" </> (Path.GetFileNameWithoutExtension projectPath))
+    |>  Seq.iter (fun (source, target) ->
+        Shell.copyDir target source (fun _ -> true))
 Target.create "Test" <| fun _ ->
     !! "tests/*.Tests/"
     |> Seq.map (fun path ->
@@ -84,8 +91,8 @@ Target.create "BumpVersion" <| fun _ ->
         | line -> line)
     |> fun lines -> File.WriteAllLines(appveyorPath, lines)
     Staging.stageAll ""
-    Commit.exec "" (sprintf "Bump version to %s" releaseNotes.AssemblyVersion)
-Target.create "Release" <| fun _ ->
+    Commit.exec "" (sprintf "Bump version to %s" releaseNotes.NugetVersion)
+Target.create "PublishGitHubRelease" <| fun _ ->
     let remote =
         CommandHelper.getGitResult "" "remote -v"
         |> Seq.filter (fun s -> s.EndsWith("(push)"))
@@ -105,14 +112,7 @@ Target.create "Release" <| fun _ ->
         releaseNotes.Notes
     |> GitHub.publishDraft
     |> Async.RunSynchronously
-Target.create "CopyBinaries" <| fun _ ->
-    !! "src/**/*.fsproj"
-    |>  Seq.map (fun projectPath ->
-        (Path.GetDirectoryName projectPath) </> "bin/Release",
-        "bin" </> (Path.GetFileNameWithoutExtension projectPath))
-    |>  Seq.iter (fun (source, target) ->
-        Shell.copyDir target source (fun _ -> true))
-Target.create "Nuget" <| fun _ ->
+Target.create "MakeNugetPackage" <| fun _ ->
     let isAppVeyor = Environment.environVarAsBool "APPVEYOR"
     let prerelease = releaseNotes.SemVer.PreRelease |> Option.isSome
     let fromTag = Environment.environVarAsBool "APPVEYOR_REPO_TAG"
@@ -125,23 +125,31 @@ Target.create "Nuget" <| fun _ ->
             { p with OutputPath = "bin"
                      Version = version
                      ReleaseNotes = String.toLines releaseNotes.Notes } )
-
 Target.create "AppVeyor" ignore
 Target.create "Rebuild" ignore
 
-"PaketRestore"
-    ==> "Build"
-    ==> "CopyBinaries"
-    ==> "Test"
-    ==> "Rebuild"
-    ==> "Nuget"
-    ==> "AppVeyor"
+// "UpdateAssemblyInfo"
+// "BumpVersion"
+// "Clean"
+// "Build"
+// "Rebuild"
+// "Test"
+// "PublishGitHubRelease"
+// "MakeNugetPackage"
+// "AppVeyor"
 
-"UpdateAssemblyInfo" ?=> "Build"
-"Clean" ?=> "Build"
-"Clean" ==> "Rebuild"
-"Rebuild" ==> "Release"
 "UpdateAssemblyInfo" ==> "BumpVersion"
+"Clean" ?=> "Build"
+"UpdateAssemblyInfo" ?=> "Build"
+"Clean" ==> "Rebuild"
+"Build" ==> "Rebuild"
+"Build" ==> "Test"
+"Rebuild" ==> "PublishGitHubRelease"
+"Test" ==> "PublishGitHubRelease"
+"Rebuild" ==> "MakeNugetPackage"
+"Test" ?=> "MakeNugetPackage"
+"Test" ==> "AppVeyor"
+"MakeNugetPackage" ==> "AppVeyor"
 "UpdateAssemblyInfo" ==> "AppVeyor"
 
 Target.runOrDefaultWithArguments "Test"
