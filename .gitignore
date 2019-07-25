@@ -180,4 +180,5 @@ localpackages/
 paket-files
 *.orig
 .paket/paket.exe
+.paket/Paket.Restore.targets
 .fake

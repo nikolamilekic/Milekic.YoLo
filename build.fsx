@@ -1,20 +1,21 @@
 #r "paket:
-nuget Fake.Api.GitHub //
-nuget Fake.Core.ReleaseNotes prerelease //
-nuget Fake.Core.Target prerelease //
-nuget Fake.DotNet.AssemblyInfoFile //
-nuget Fake.DotNet.Cli prerelease //
-nuget Fake.DotNet.Paket prerelease //
-nuget Fake.IO.FileSystem prerelease //
-nuget Fake.Runtime prerelease //
-nuget Fake.Tools.Git prerelease //"
+nuget Fake.Api.GitHub
+nuget Fake.Core.ReleaseNotes
+nuget Fake.Core.Target
+nuget Fake.DotNet.AssemblyInfoFile
+nuget Fake.DotNet.Cli
+nuget Fake.DotNet.Paket
+nuget Fake.IO.FileSystem
+nuget Fake.Runtime
+nuget Fake.DotNet.Paket
+nuget Fake.Tools.Git
+nuget FSharp.Core //"
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open System.IO
 
 open Fake.Api
 open Fake.Core
-open Fake.Core.Target
 open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
@@ -29,6 +30,7 @@ let gitHome = "https://github.com/" + gitOwner
 let releaseNotes = ReleaseNotes.load "RELEASE_NOTES.md"
 let buildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
 
+Target.create "PaketRestore" <| fun _ -> Paket.restore id
 Target.create "Clean" <| fun _ ->
     Seq.allPairs [|"src"; "tests"|] [|"bin"; "obj"|]
     |> Seq.collect (fun (x, y) -> !!(sprintf "%s/**/%s" x y))
@@ -123,11 +125,12 @@ Target.create "Nuget" <| fun _ ->
             { p with OutputPath = "bin"
                      Version = version
                      ReleaseNotes = String.toLines releaseNotes.Notes } )
-Target.create "AppVeyor" DoNothing
 
-Target.create "Rebuild" DoNothing
+Target.create "AppVeyor" ignore
+Target.create "Rebuild" ignore
 
-"Build"
+"PaketRestore"
+    ==> "Build"
     ==> "CopyBinaries"
     ==> "Test"
     ==> "Rebuild"
@@ -141,4 +144,4 @@ Target.create "Rebuild" DoNothing
 "UpdateAssemblyInfo" ==> "BumpVersion"
 "UpdateAssemblyInfo" ==> "AppVeyor"
 
-runOrDefault "Test"
+Target.runOrDefaultWithArguments "Test"
