@@ -2,6 +2,7 @@
 module Milekic.YoLo.Core
 
 open System.Threading
+open System.Collections.Generic
 open Microsoft.FSharp.Quotations
 
 let curry f a b = f(a, b)
@@ -21,3 +22,9 @@ let nameOf = function
     | _ -> failwith "Unsupported quotation was passed to nameof"
 
 let instanceOf<'T> : 'T = failwith "instanceOf operator should only be used in expressions and should never actually be called"
+
+type IDictionary<'a, 'b> with
+    member this.TryFind(key) =
+        match this.TryGetValue(key) with
+        | true, x -> Some x
+        | false, _ -> None
