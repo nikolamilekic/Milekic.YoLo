@@ -4,6 +4,8 @@ open Result
 open System
 
 let either ok error = function | Ok x -> ok x | Error x -> error x
+let liftOption error = function | Some x -> Ok x
+                                | None -> Error error
 let liftChoice = function | Choice1Of2 x -> Ok x
                           | Choice2Of2 error -> Error error
 let toChoice e = e |> either Choice1Of2 Choice2Of2
