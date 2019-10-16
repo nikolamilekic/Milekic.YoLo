@@ -1,3 +1,21 @@
+version 5.224.0
+storage none
 source https://www.nuget.org/api/v2
 
 nuget FSharp.Core >= 4.3.4 lowest_matching: true
+
+// [ FAKE GROUP ]
+group Build
+    storage none
+    source https://api.nuget.org/v3/index.json
+
+    nuget Fake.Api.GitHub
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.Target
+    nuget Fake.DotNet.AssemblyInfoFile
+    nuget Fake.DotNet.Cli
+    nuget Fake.DotNet.Paket
+    nuget Fake.IO.FileSystem
+    nuget Fake.Runtime
+    nuget Fake.Tools.Git
+    nuget FSharp.Core
