@@ -22,12 +22,15 @@ let releaseNotes = ReleaseNotes.load "RELEASE_NOTES.md"
 let version =
     if AppVeyor.detect() then
         let assemblyVersion = SemVer.parse(releaseNotes.AssemblyVersion)
-        sprintf
-            "%i.%i.%i.%s"
-            assemblyVersion.Major
-            assemblyVersion.Minor
-            assemblyVersion.Patch
-            AppVeyor.Environment.BuildNumber
+        let result =
+            sprintf
+                "%i.%i.%i.%s"
+                assemblyVersion.Major
+                assemblyVersion.Minor
+                assemblyVersion.Patch
+                AppVeyor.Environment.BuildNumber
+        AppVeyor.updateBuild (fun p -> { p with Version = result })
+        result
     else releaseNotes.AssemblyVersion
 
 let flip f a b = f b a
@@ -108,26 +111,6 @@ Target.create "UploadArtifactsToGitHub" <| fun _ ->
         |> Async.RunSynchronously
 
 [ "Pack" ] ==> "UploadArtifactsToGitHub"
-
-Target.create "BumpVersion" <| fun _ ->
-    let appveyorPath = "appveyor.yml"
-    let appveyorVersion =
-        let assemblyVersion = SemVer.parse(releaseNotes.AssemblyVersion)
-        sprintf
-            "%i.%i.%i.{build}"
-            assemblyVersion.Major
-            assemblyVersion.Minor
-            assemblyVersion.Patch
-    File.ReadAllLines appveyorPath
-    |> Seq.map (function
-        | line when line.StartsWith "version:" ->
-            sprintf "version: %s" appveyorVersion
-        | line -> line)
-    |> fun lines -> File.WriteAllLines(appveyorPath, lines)
-    Staging.stageAll ""
-    Commit.exec "" (sprintf "Bump version to %s" releaseNotes.NugetVersion)
-
-[ "UpdateAssemblyInfo" ] ==> "BumpVersion"
 
 Target.create "Release" <| fun _ ->
     let remote =
