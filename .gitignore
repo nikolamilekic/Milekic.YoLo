@@ -182,3 +182,4 @@ paket-files
 .paket/paket.exe
 .paket/Paket.Restore.targets
 .fake
+.ionide
