@@ -1,5 +1,7 @@
 namespace Milekic.YoLo
 
+#nowarn "40"
+
 open System
 
 [<NoComparison; NoEquality>]
@@ -43,6 +45,7 @@ module UpdateResult =
 
     module Operators =
         let inline (>>=) e f = bind f e
+        let inline (>>=.) e1 e2 = e1 |> bind (fun _ -> e2)
         let inline (>=>) f1 f2 e = f1 e >>= f2
         let inline (>>-) e f = map f e
         let inline (>>-!) x f = mapError f x
@@ -89,3 +92,15 @@ module UpdateResult =
         return result
     }
     let inline sequence source = traverse id source
+
+    let inline traverseUnit f (source : _ seq) = updateResult {
+        use enumerator = source.GetEnumerator()
+        let rec inner = updateResult {
+            if enumerator.MoveNext() = false then return () else
+            do! f enumerator.Current
+            return! inner
+        }
+        return! inner
+    }
+
+    let inline sequenceUnit x = traverseUnit id x
