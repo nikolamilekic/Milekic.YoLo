@@ -2,7 +2,10 @@ init:
   - git config --global core.autocrlf input
 build_script:
   - cmd: build.cmd -t AppVeyor
-test: off
+skip_tags: true
+branches:
+  only:
+  - release
 artifacts:
   - path: publish
     name: publish
