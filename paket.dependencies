@@ -9,6 +9,7 @@ group Build
     storage none
     source https://api.nuget.org/v3/index.json
 
+    nuget FSharp.Core
     nuget Fake.Api.GitHub
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Target
@@ -18,4 +19,5 @@ group Build
     nuget Fake.IO.FileSystem
     nuget Fake.Runtime
     nuget Fake.Tools.Git
-    nuget FSharp.Core
+    nuget Fake.BuildServer.AppVeyor
+    nuget Fake.IO.Zip

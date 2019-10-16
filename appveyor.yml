@@ -5,10 +5,8 @@ build_script:
 test: off
 version: 2.0.0.{build}
 artifacts:
-  - path: bin
-    name: bin
-  - path: bin/*.nupkg
-    name: nuget
+  - path: publish
+    name: publish
 nuget:
   project_feed: true
 
