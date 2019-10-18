@@ -55,10 +55,7 @@ Target.create "Clean" <| fun _ ->
 
     Shell.cleanDir "publish"
 
-Target.create "Build" <| fun _ ->
-    Paket.restore id
-    DotNet.build id "src/Milekic.YoLo"
-
+Target.create "Build" <| fun _ -> DotNet.build id "src/Milekic.YoLo"
 [ "Clean" ]  ?=> "Build"
 
 Target.create "Pack" <| fun _ ->
