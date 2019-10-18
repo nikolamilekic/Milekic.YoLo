@@ -13,7 +13,6 @@ group Build
     nuget Fake.Api.GitHub
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Target
-    nuget Fake.DotNet.AssemblyInfoFile
     nuget Fake.DotNet.Cli
     nuget Fake.DotNet.Paket
     nuget Fake.IO.FileSystem
@@ -21,3 +20,6 @@ group Build
     nuget Fake.Tools.Git
     nuget Fake.BuildServer.AppVeyor
     nuget Fake.IO.Zip
+
+    nuget Microsoft.SourceLink.GitHub prerelease copy_local: true
+    clitool sourcelink storage: packages

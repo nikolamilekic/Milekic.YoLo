@@ -27,9 +27,19 @@
   <PropertyGroup>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>FS2003</NoWarn> <!-- Warning for the SourceLink assembly info attribute -->
+  </PropertyGroup>
+  <PropertyGroup>
+    <Description>Utilities</Description>
+    <Authors>Nikola Milekic</Authors>
+    <RepositoryUrl>https://github.com/nikolamilekic/Milekic.YoLo/</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/nikolamilekic/Milekic.YoLo/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Result.fs" />
     <Compile Include="Eventually.fs" />
