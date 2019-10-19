@@ -24,4 +24,4 @@ if ! [ -e "$FAKE" ]
 then
   dotnet tool install fake-cli --tool-path "$TOOL_PATH" --version 5.*
 fi
-"$FAKE" run build.fsx "$@"
+"$FAKE" run build.fsx -p 4 "$@"

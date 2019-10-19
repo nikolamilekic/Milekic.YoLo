@@ -4,4 +4,4 @@ IF NOT EXIST "%TOOL_PATH%\fake.exe" (
   dotnet tool install fake-cli --tool-path ./%TOOL_PATH% --version 5.*
 )
 
-"%TOOL_PATH%/fake.exe" run build.fsx %*
+"%TOOL_PATH%/fake.exe" run build.fsx -p 4 %*
