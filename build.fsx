@@ -111,6 +111,13 @@ Target.create "UploadArtifactsToGitHub" <| fun _ ->
 
 [ "TestSourceLink" ] ==> "UploadArtifactsToGitHub"
 
+Target.create "UploadPackageToNuget" <| fun _ ->
+    if AppVeyor.detect() && AppVeyor.Environment.RepoBranch = "release" then
+        Paket.push <| fun p ->
+            { p with WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
+
+[ "TestSourceLink" ] ==> "UploadPackageToNuget"
+
 Target.create "Release" <| fun _ ->
     let remote =
         CommandHelper.getGitResult "" "remote -v"
@@ -125,6 +132,6 @@ Target.create "Release" <| fun _ ->
 [ "Clean"; "Build" ] ==> "Release"
 
 Target.create "AppVeyor" ignore
-[ "UploadArtifactsToGitHub" ] ==> "AppVeyor"
+[ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
 
 Target.runOrDefault "Build"
