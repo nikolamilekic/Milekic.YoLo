@@ -114,7 +114,9 @@ Target.create "UploadArtifactsToGitHub" <| fun _ ->
 Target.create "UploadPackageToNuget" <| fun _ ->
     if AppVeyor.detect() && AppVeyor.Environment.RepoBranch = "release" then
         Paket.push <| fun p ->
-            { p with WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
+            { p with
+                ToolType = ToolType.CreateLocalTool()
+                WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
 
 [ "TestSourceLink" ] ==> "UploadPackageToNuget"
 
