@@ -11,7 +11,8 @@
       <AssemblyFileVersion Condition="'$(GitSemVerLabel)' == ''">$(SemanticVersion)</AssemblyFileVersion>
       <AssemblyFileVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch).0</AssemblyFileVersion>
 
-      <InformationalVersion>$(SemanticVersion)</InformationalVersion>
+      <IncludeSourceRevisionInInformationalVersion>False</IncludeSourceRevisionInInformationalVersion>
+      <InformationalVersion>$(SemanticVersion)+$(GitSha)</InformationalVersion>
 
       <PackageVersion>$(SemanticVersion)</PackageVersion>
     </PropertyGroup>
