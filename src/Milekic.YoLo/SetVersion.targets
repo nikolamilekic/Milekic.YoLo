@@ -1,6 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);SetVersion</GenerateNuspecDependsOn>
+    <GitInfoReportImportance>high</GitInfoReportImportance>
+    <GitIgnoreBranchVersion>True</GitIgnoreBranchVersion>
+    <GitIgnoreTagVersion>True</GitIgnoreTagVersion>
   </PropertyGroup>
   <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion">
     <PropertyGroup>
@@ -8,8 +11,8 @@
       <SemanticVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch)$(GitSemVerDashLabel).$(GitCommits)</SemanticVersion>
 
       <AssemblyVersion>$(GitBaseVersionMajor).0.0.0</AssemblyVersion>
-      <AssemblyFileVersion Condition="'$(GitSemVerLabel)' == ''">$(SemanticVersion)</AssemblyFileVersion>
-      <AssemblyFileVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch).0</AssemblyFileVersion>
+      <FileVersion Condition="'$(GitSemVerLabel)' == ''">$(SemanticVersion).0</FileVersion>
+      <FileVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch).0</FileVersion>
 
       <IncludeSourceRevisionInInformationalVersion>False</IncludeSourceRevisionInInformationalVersion>
       <InformationalVersion>$(SemanticVersion)+$(GitSha)</InformationalVersion>
