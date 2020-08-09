@@ -1,8 +1,6 @@
 # Auto detect text files
 * text=auto
 
-.paket/Paket.Restore.targets -text
-
 # Custom for Visual Studio
 *.cs diff=csharp text=auto eol=lf
 *.vb diff=csharp text=auto eol=lf
