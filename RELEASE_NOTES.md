@@ -1,4 +1,4 @@
-### 2.0.0-dev - Unreleased
+### 2.0 - 2020/08/09
 * (Breaking change) Update.run signature changed
 * (Breaking change) SimpleUpdate.read moved to Update module
 * (Breaking change) SimpleUpdate.get is now Update.getState
