@@ -2,3 +2,4 @@ FSharp.Core
 
 group Build
 Microsoft.SourceLink.GitHub
+GitInfo

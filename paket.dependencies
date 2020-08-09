@@ -19,6 +19,7 @@ group Build
     nuget Fake.Tools.Git
     nuget Fake.BuildServer.AppVeyor
     nuget Fake.IO.Zip
+    nuget GitInfo = 2.0.26 storage: symlink
 
     nuget Microsoft.SourceLink.GitHub prerelease copy_local: true
     clitool sourcelink storage: packages

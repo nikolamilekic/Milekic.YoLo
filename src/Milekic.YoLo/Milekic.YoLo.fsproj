@@ -33,7 +33,7 @@
     <Description>Utilities</Description>
     <Authors>Nikola Milekic</Authors>
     <RepositoryUrl>https://github.com/nikolamilekic/Milekic.YoLo/</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/nikolamilekic/Milekic.YoLo/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -49,5 +49,6 @@
     <Compile Include="Validation.fs" />
     <Compile Include="AutoOpen.fs" />
   </ItemGroup>
+  <Import Project="SetVersion.targets" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

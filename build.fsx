@@ -1,7 +1,7 @@
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open System
-open System.IO
+open System.Text.RegularExpressions
 
 open Fake.Api
 open Fake.Core
@@ -9,7 +9,6 @@ open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
-open Fake.IO.FileSystemOperators
 open Fake.Runtime
 open Fake.Tools.Git
 open Fake.BuildServer
@@ -17,29 +16,23 @@ open Fake.BuildServer
 let productName = "Milekic.YoLo"
 let gitOwner = "nikolamilekic"
 let gitHome = "https://github.com/" + gitOwner
-let releaseNotes = ReleaseNotes.load "RELEASE_NOTES.md"
+let releaseNotes =
+    (ReleaseNotes.load "RELEASE_NOTES.md").Notes
+    |> String.concat Environment.NewLine
 
-let packageVersion =
-    if releaseNotes.SemVer.PreRelease.IsSome && AppVeyor.detect() then
-        sprintf
-            "%s.%s"
-            releaseNotes.NugetVersion
-            AppVeyor.Environment.BuildNumber
-    else releaseNotes.NugetVersion
-let assemblyVersion = releaseNotes.AssemblyVersion
-let fileVersion =
-    if AppVeyor.detect() then
-        let assemblyVersion = SemVer.parse(assemblyVersion)
-        sprintf
-            "%i.%i.%i.%s"
-            assemblyVersion.Major
-            assemblyVersion.Minor
-            assemblyVersion.Patch
-            AppVeyor.Environment.BuildNumber
-    else assemblyVersion
+let (|Regex|_|) pattern input =
+    let m = Regex.Match(input, pattern)
+    if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
+    else None
 
-if AppVeyor.detect() then
-    AppVeyor.updateBuild (fun p -> { p with Version = fileVersion })
+let finalVersion =
+    lazy
+    __SOURCE_DIRECTORY__ + "/src/Milekic.YoLo/obj/Release/netstandard2.0/Milekic.YoLo.AssemblyInfo.fs"
+    |> File.readAsString
+    |> function
+        | Regex "AssemblyInformationalVersionAttribute\(\"(.+)\"\)>]" [ version ] ->
+            SemVer.parse version
+        | _ -> failwith "Could not parse assembly version"
 
 let flip f a b = f b a
 let (==>) xs y = xs |> Seq.iter (fun x -> x ==> y |> ignore)
@@ -59,13 +52,7 @@ Target.create "Build" <| fun _ -> DotNet.build id "src/Milekic.YoLo"
 [ "Clean" ]  ?=> "Build"
 
 Target.create "Pack" <| fun _ ->
-    let newBuildProperties = [
-        "Version", packageVersion
-        "AssemblyVersion", assemblyVersion
-        "FileVersion", fileVersion
-        "PackageReleaseNotes",
-            (String.concat Environment.NewLine releaseNotes.Notes)
-    ]
+    let newBuildProperties = [ "PackageReleaseNotes", releaseNotes ]
     DotNet.pack
         (fun p ->
             { p with
@@ -89,34 +76,33 @@ Target.create "TestSourceLink" <| fun _ ->
 
 [ "Pack" ] ==> "TestSourceLink"
 
-Target.create "UploadArtifactsToGitHub" <| fun _ ->
-    if AppVeyor.detect() &&
-        AppVeyor.Environment.RepoBranch = "release" &&
-        releaseNotes.SemVer.PreRelease.IsNone then
+Target.create "UploadArtifactsToGitHub" <| fun c ->
+    let finalVersion = finalVersion.Value
+    if c.Context.FinalTarget = "AppVeyor" && finalVersion.PreRelease.IsSome
+    then () else
 
-        let token = Environment.environVarOrFail "GitHubToken"
-        GitHub.createClientWithToken token
-        |> GitHub.createRelease
-            gitOwner
-            productName
-            packageVersion
-            (fun o ->
-                { o with
-                    Body = String.concat Environment.NewLine releaseNotes.Notes
-                    Prerelease = (releaseNotes.SemVer.PreRelease <> None)
-                    TargetCommitish = AppVeyor.Environment.RepoCommit })
-        |> GitHub.uploadFiles !! "publish/*"
-        |> GitHub.publishDraft
-        |> Async.RunSynchronously
+    let token = Environment.environVarOrFail "GitHubToken"
+    GitHub.createClientWithToken token
+    |> GitHub.createRelease
+        gitOwner
+        productName
+        (finalVersion.NormalizeToShorter())
+        (fun o ->
+            { o with
+                Body = releaseNotes
+                Prerelease = (finalVersion.PreRelease <> None)
+                TargetCommitish = AppVeyor.Environment.RepoCommit })
+    |> GitHub.uploadFiles !! "publish/*"
+    |> GitHub.publishDraft
+    |> Async.RunSynchronously
 
 [ "TestSourceLink" ] ==> "UploadArtifactsToGitHub"
 
 Target.create "UploadPackageToNuget" <| fun _ ->
-    if AppVeyor.detect() && AppVeyor.Environment.RepoBranch = "release" then
-        Paket.push <| fun p ->
-            { p with
-                ToolType = ToolType.CreateLocalTool()
-                WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
+    Paket.push <| fun p ->
+        { p with
+            ToolType = ToolType.CreateLocalTool()
+            WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
 
 [ "TestSourceLink" ] ==> "UploadPackageToNuget"
 
@@ -133,7 +119,19 @@ Target.create "Release" <| fun _ ->
 
 [ "Clean"; "Build" ] ==> "Release"
 
-Target.create "AppVeyor" ignore
+Target.create "AppVeyor" <| fun _ ->
+    let finalVersion = finalVersion.Value
+    if AppVeyor.detect() then
+        let appVeyorVersion =
+            sprintf
+                "%d.%d.%d.%s"
+                finalVersion.Major
+                finalVersion.Minor
+                finalVersion.Patch
+                AppVeyor.Environment.BuildNumber
+
+        AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
+
 [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
 
 Target.runOrDefault "Build"
