@@ -1,6 +1,7 @@
 [<AutoOpen>]
 module Milekic.YoLo.Core
 
+open System.Text.RegularExpressions
 open System.Threading
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations
@@ -28,3 +29,8 @@ type IDictionary<'a, 'b> with
         match this.TryGetValue(key) with
         | true, x -> Some x
         | false, _ -> None
+
+let (|Regex|_|) pattern input =
+    let m = Regex.Match(input, pattern)
+    if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
+    else None
