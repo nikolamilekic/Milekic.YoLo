@@ -615,7 +615,7 @@ NUGET
       FSharp.Core (>= 4.7.2) - restriction: || (>= net46) (>= netstandard2.0)
       System.Reactive (>= 4.4.1) - restriction: || (>= net46) (>= netstandard2.0)
     FSharp.Core (4.7.2)
-    GitInfo (2.0.26) - storage: symlink
+    GitInfo (2.0.26) - copy_local: true, storage: symlink
     Microsoft.Build (16.6) - restriction: >= netstandard2.0
       Microsoft.Build.Framework (>= 16.6) - restriction: || (>= net472) (>= netcoreapp2.1)
       Microsoft.VisualStudio.Setup.Configuration.Interop (>= 1.16.30) - restriction: >= net472
@@ -640,7 +640,7 @@ NUGET
       System.Resources.Extensions (>= 4.6) - restriction: >= netstandard2.0
       System.Security.Permissions (>= 4.7) - restriction: && (< net472) (>= netstandard2.0)
       System.Threading.Tasks.Dataflow (>= 4.9) - restriction: >= netstandard2.0
-    Microsoft.Build.Tasks.Git (1.1.0-beta-20204-02) - copy_local: true
+    Microsoft.Build.Tasks.Git (1.0) - copy_local: true
     Microsoft.Build.Utilities.Core (16.6) - restriction: >= netstandard2.0
       Microsoft.Build.Framework (>= 16.6) - restriction: >= netstandard2.0
       Microsoft.VisualStudio.Setup.Configuration.Interop (>= 1.16.30) - restriction: >= net472
@@ -652,10 +652,10 @@ NUGET
       System.Runtime.InteropServices.RuntimeInformation (>= 4.0) - restriction: || (>= net45) (&& (>= netstandard1.3) (< netstandard2.0))
     Microsoft.NETCore.Platforms (3.1.1) - restriction: || (&& (< monoandroid) (< net46) (< netcoreapp5.0) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (>= net45) (< netstandard1.3) (>= netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard2.0)) (&& (>= net461) (>= netstandard2.0)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard2.0) (< portable-net45+win8)) (&& (< netstandard1.0) (>= netstandard2.0) (>= win8)) (&& (< netstandard1.0) (>= netstandard2.0) (< win8)) (&& (< netstandard1.3) (>= netstandard2.0) (< win8) (>= wpa81)) (&& (< netstandard1.5) (>= netstandard2.0) (>= uap10.0)) (&& (>= netstandard2.0) (< portable-net45+win8+wpa81)) (&& (>= netstandard2.0) (>= uap10.1)) (&& (>= netstandard2.0) (>= wp8))
     Microsoft.NETCore.Targets (3.1) - restriction: || (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard2.0) (< win8) (< wpa81) (< xamarinios) (< xamarinmac)) (&& (< monoandroid) (< net46) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (>= netcoreapp5.0)
-    Microsoft.SourceLink.Common (1.1.0-beta-20204-02) - copy_local: true
-    Microsoft.SourceLink.GitHub (1.1.0-beta-20204-02) - copy_local: true
-      Microsoft.Build.Tasks.Git (>= 1.1.0-beta-20204-02)
-      Microsoft.SourceLink.Common (>= 1.1.0-beta-20204-02)
+    Microsoft.SourceLink.Common (1.0) - copy_local: true
+    Microsoft.SourceLink.GitHub (1.0) - copy_local: true
+      Microsoft.Build.Tasks.Git (>= 1.0)
+      Microsoft.SourceLink.Common (>= 1.0)
     Microsoft.VisualStudio.Setup.Configuration.Interop (1.16.30) - restriction: >= net472
     Microsoft.Win32.Primitives (4.3) - restriction: && (< monoandroid) (< net46) (< netcoreapp5.0) (>= netstandard2.0) (< xamarinios) (< xamarinmac)
       Microsoft.NETCore.Platforms (>= 1.1) - restriction: && (< monoandroid) (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
