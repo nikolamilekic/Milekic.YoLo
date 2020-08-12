@@ -79,6 +79,7 @@ module UpdateResult =
             |> wrap
         member inline this.Using(d : #IDisposable, f) =
             this.TryFinally(delay (fun () -> f d), d.Dispose)
+        member inline __.Combine(eUnit, e) = bind (fun _ -> e) eUnit
 
     let updateResult = Builder()
     let inline traverse f (source : _ seq) = updateResult {

@@ -62,6 +62,7 @@ module Update =
             |> Update
         member inline this.Using(d : #IDisposable, f) =
             this.TryFinally(delay (fun () -> f d), d.Dispose)
+        member inline __.Combine(eUnit, e) = bind (fun _ -> e) eUnit
 
 [<NoComparison; NoEquality>]
 type SimpleUpdate<'s> =
