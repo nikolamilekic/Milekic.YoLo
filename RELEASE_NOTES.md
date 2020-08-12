@@ -1,5 +1,6 @@
 ### 2.1 - Unreleased
 * Regex partial active pattern
+* Update and UpdateResult improvements
 
 ### 2.0 - 2020/08/09
 * (Breaking change) Update.run signature changed
