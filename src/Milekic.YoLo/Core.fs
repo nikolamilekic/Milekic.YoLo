@@ -4,7 +4,7 @@ module Milekic.YoLo.Core
 open System.Text.RegularExpressions
 open System.Threading
 open System.Collections.Generic
-open Microsoft.FSharp.Quotations
+open Microsoft.FSharp.Quotations.Patterns
 
 let curry f a b = f(a, b)
 let uncurry f (a, b) = f a b
@@ -18,9 +18,11 @@ let rec atomicUpdateQuery state update =
 let atomicUpdateQueryResult s u = (s, u) ||> atomicUpdateQuery |> fst
 
 let nameOf = function
-    | Patterns.PropertyGet(_, propertyInfo, _) -> propertyInfo.Name
-    | Patterns.FieldGet(_, fieldInfo) -> fieldInfo.Name
-    | _ -> failwith "Unsupported quotation was passed to nameof"
+    | PropertyGet(_, propertyInfo, _) -> propertyInfo.Name
+    | FieldGet(_, fieldInfo) -> fieldInfo.Name
+    | Lambda (_, NewUnionCase (info, _)) -> info.Name
+    | Lambda (_, Call (_, method, _)) -> method.Name
+    | e -> failwithf "Unsupported quotation was passed to nameOf %A" e
 
 let instanceOf<'T> : 'T = failwith "instanceOf operator should only be used in expressions and should never actually be called"
 
