@@ -25,11 +25,6 @@
     <AssemblySearchPaths Condition="'$(BaseFrameworkPathOverrideForMono)' != ''">$(FrameworkPathOverride)/Facades;$(AssemblySearchPaths)</AssemblySearchPaths>
   </PropertyGroup>
   <PropertyGroup>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>FS2003</NoWarn> <!-- Warning for the SourceLink assembly info attribute -->
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Utilities</Description>
     <Authors>Nikola Milekic</Authors>
     <RepositoryUrl>https://github.com/nikolamilekic/Milekic.YoLo/</RepositoryUrl>

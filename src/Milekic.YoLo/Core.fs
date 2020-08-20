@@ -1,13 +1,17 @@
 [<AutoOpen>]
 module Milekic.YoLo.Core
 
+open System
 open System.Text.RegularExpressions
 open System.Threading
 open System.Collections.Generic
 open Microsoft.FSharp.Quotations.Patterns
 
+[<Obsolete("Use FSharpPlus instead")>]
 let curry f a b = f(a, b)
+[<Obsolete("Use FSharpPlus instead")>]
 let uncurry f (a, b) = f a b
+[<Obsolete("Use FSharpPlus instead")>]
 let flip f a b = f b a
 let rec atomicUpdateQuery state update =
     let oldState = !state

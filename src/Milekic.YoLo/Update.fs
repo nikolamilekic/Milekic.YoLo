@@ -1,9 +1,13 @@
 namespace Milekic.YoLo
 
+#nowarn "44"
+
 open System
 
-[<NoComparison; NoEquality>]
+[<NoComparison; NoEquality; Obsolete("Use FSharpPlus instead")>]
 type Update<'s, 'u, 'a> = Update of ('s -> 'u * 'a)
+
+[<Obsolete("Use FSharpPlus instead")>]
 module Update =
     let inline unit< ^u when ^u : (static member Unit : ^u)> : ^u =
         (^u : (static member Unit : ^u) ())
@@ -45,6 +49,7 @@ module Update =
         >>- List.rev
     let inline sequence source = traverse id source
 
+    [<Obsolete("Use FSharpPlus instead")>]
     type Builder() =
         member inline __.Return x = liftValue x
         member __.ReturnFrom x = x
@@ -64,7 +69,7 @@ module Update =
             this.TryFinally(delay (fun () -> f d), d.Dispose)
         member inline __.Combine(eUnit, e) = bind (fun _ -> e) eUnit
 
-[<NoComparison; NoEquality>]
+[<NoComparison; NoEquality; Obsolete("Use FSharpPlus instead")>]
 type SimpleUpdate<'s> =
     | DoNothing
     | ApplySimpleUpdate of ('s -> 's)
@@ -81,6 +86,7 @@ type SimpleUpdate<'s> =
         | SetNewState s, ApplySimpleUpdate f -> SetNewState (f s)
         | _, SetNewState s -> SetNewState s
 
+[<Obsolete("Use FSharpPlus instead")>]
 module SimpleUpdate =
     let applyUpdate updateF : Update<'s, SimpleUpdate<'s>, unit> =
         (fun _ -> ApplySimpleUpdate updateF, ()) |> Update

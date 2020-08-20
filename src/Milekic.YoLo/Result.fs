@@ -1,3 +1,4 @@
+[<System.Obsolete("Use FSharpPlus instead")>]
 module Milekic.YoLo.Result
 
 open Result
@@ -24,6 +25,7 @@ let traverse f (source : _ seq) =
     inner []
 let sequence source = traverse id source
 
+[<Obsolete("Use FSharpPlus instead")>]
 module Operators =
     let inline (>>=) e f = bind f e
     let inline (>=>) f1 f2 e = f1 e >>= f2
@@ -32,6 +34,7 @@ module Operators =
     let inline (>>-!.) x error = Result.mapError (fun _ -> error) x
     let inline (>>-.) x value = Result.map (fun _ -> value) x
 
+[<Obsolete("Use FSharpPlus instead")>]
 type Builder() =
     member __.Bind(e, f) = bind f e
     member __.Return x = Ok x

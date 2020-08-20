@@ -3,11 +3,13 @@ namespace Milekic.YoLo
 open System
 
 module Seq =
+    [<Obsolete("Use FSharpPlus chooise id instead")>]
     let onlySome xs = seq {
         for x in xs do match x with | Some v -> yield v | None -> ()
     }
 
 module List =
+    [<Obsolete("Use FSharpPlus chooise id instead")>]
     let onlySome list =
         List.foldBack
             (fun x xs -> match x with | None -> xs | Some v -> v::xs )
@@ -15,6 +17,8 @@ module List =
             []
 
 open Option
+
+[<Obsolete("Use FSharpPlus instead")>]
 module Option =
     let traverse f (source : _ seq) =
         use enumerator = source.GetEnumerator()
@@ -24,6 +28,7 @@ module Option =
             | None -> None
             | Some x -> inner (x::state)
         inner []
+
     let sequence source = traverse id source
 
     module Operators =

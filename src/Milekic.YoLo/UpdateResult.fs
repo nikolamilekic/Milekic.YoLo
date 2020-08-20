@@ -1,14 +1,15 @@
 namespace Milekic.YoLo
 
-#nowarn "40"
+#nowarn "40" "44"
 
 open System
 
-[<NoComparison; NoEquality>]
+[<NoComparison; NoEquality; Obsolete("Use FSharpPlus instead")>]
 type UpdateResult<'s, 'u, 'a, 'e> =
     | Pure of 'a
     | Free of Update<'s, 'u, Result<UpdateResult<'s, 'u, 'a, 'e>, 'e>>
 
+[<Obsolete("Use FSharpPlus instead")>]
 module UpdateResult =
     let inline private mapStack f = Update.map (Result.map f)
     let inline bind f =
@@ -51,6 +52,7 @@ module UpdateResult =
         inner (state, Update.unit)
     let inline run state = runWithUpdate state >> Result.map snd
 
+    [<Obsolete("Use FSharpPlus instead")>]
     module Operators =
         let inline (>>=) e f = bind f e
         let inline (>>=.) e1 e2 = e1 |> bind (fun _ -> e2)
@@ -60,6 +62,7 @@ module UpdateResult =
         let inline (>>-!.) x error = mapError (fun _ -> error) x
         let inline (>>-.) x value = map (fun _ -> value) x
 
+    [<Obsolete("Use FSharpPlus instead")>]
     type Builder() =
         member inline __.Bind(e, f) = bind f e
         member inline __.Return x = liftValue x
