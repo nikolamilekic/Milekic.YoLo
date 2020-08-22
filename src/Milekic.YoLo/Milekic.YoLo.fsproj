@@ -36,6 +36,9 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Milekic.YoLo.targets" Pack="true" PackagePath="build/">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="Core.fs" />
     <Compile Include="Result.fs" />
     <Compile Include="Eventually.fs" />
@@ -45,6 +48,6 @@
     <Compile Include="Validation.fs" />
     <Compile Include="AutoOpen.fs" />
   </ItemGroup>
-  <Import Project="SetVersion.targets" />
+  <Import Project="Milekic.YoLo.targets" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
