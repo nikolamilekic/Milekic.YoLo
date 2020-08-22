@@ -1,11 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(GitThisAssemblyMetadata)' == 'true'">
     <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);SetVersion</GenerateNuspecDependsOn>
     <GitInfoReportImportance>high</GitInfoReportImportance>
     <GitIgnoreBranchVersion>True</GitIgnoreBranchVersion>
     <GitIgnoreTagVersion>True</GitIgnoreTagVersion>
   </PropertyGroup>
-  <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion">
+  <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion" Condition="'$(GitThisAssemblyMetadata)' == 'true'">
     <PropertyGroup>
       <SemanticVersion Condition="'$(GitSemVerLabel)' == ''">$(GitSemVerMajor).$(GitSemVerMinor).$(GitSemVerPatch)</SemanticVersion>
       <SemanticVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch)$(GitSemVerDashLabel).$(GitCommits)</SemanticVersion>
