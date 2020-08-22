@@ -40,6 +40,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="Core.fs" />
+    <Compile Include="Metadata.fs" />
     <Compile Include="Result.fs" />
     <Compile Include="Eventually.fs" />
     <Compile Include="Update.fs" />
