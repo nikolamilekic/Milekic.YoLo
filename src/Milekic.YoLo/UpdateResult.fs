@@ -24,12 +24,6 @@ module UpdateResult =
     let inline liftError x = Error x |> liftResult
     let inline liftUpdate x = Update.map Ok x |> wrap
     let inline read f = Update.read f |> liftUpdate
-    let inline
-        getState< ^s, ^u, 'e
-            when ^u : (static member Apply : ^s * ^u -> ^s)
-            and ^u : (static member Combine : ^u * ^u -> ^u)
-            and ^u : (static member Unit : ^u)>
-        : UpdateResult< ^s, ^u, _, 'e> = read id
     let inline mapError f =
         let rec inner = function
             | Pure x -> Pure x
