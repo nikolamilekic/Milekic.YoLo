@@ -9,6 +9,10 @@ group Build
     source https://api.nuget.org/v3/index.json
 
     nuget FSharp.Core
+    nuget FSharpPlus
+    nuget GitInfo = 2.0.26 copy_local: true
+    nuget Microsoft.SourceLink.GitHub copy_local: true
+
     nuget Fake.Api.GitHub
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Target
@@ -19,7 +23,3 @@ group Build
     nuget Fake.Tools.Git
     nuget Fake.BuildServer.AppVeyor
     nuget Fake.IO.Zip
-    nuget GitInfo = 2.0.26 storage: symlink, copy_local: true
-
-    nuget Microsoft.SourceLink.GitHub copy_local: true
-    clitool sourcelink storage: packages

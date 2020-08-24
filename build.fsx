@@ -1,6 +1,7 @@
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open System
+open System.IO
 open System.Text.RegularExpressions
 
 open Fake.Api
@@ -9,16 +10,19 @@ open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
+open Fake.IO.FileSystemOperators
 open Fake.Runtime
 open Fake.Tools.Git
 open Fake.BuildServer
+open FSharpPlus
 
 let productName = "Milekic.YoLo"
 let gitOwner = "nikolamilekic"
-let gitHome = "https://github.com/" + gitOwner
+let gitHome = "git@github.com:nikolamilekic/Milekic.YoLo.git"
 let releaseNotes =
     (ReleaseNotes.load "RELEASE_NOTES.md").Notes
     |> String.concat Environment.NewLine
+let pathToAssemblyInfoFile = "/src/Milekic.YoLo/obj/Release/netstandard2.0/Milekic.YoLo.AssemblyInfo.fs"
 
 let (|Regex|_|) pattern input =
     let m = Regex.Match(input, pattern)
@@ -27,28 +31,35 @@ let (|Regex|_|) pattern input =
 
 let finalVersion =
     lazy
-    __SOURCE_DIRECTORY__ + "/src/Milekic.YoLo/obj/Release/netstandard2.0/Milekic.YoLo.AssemblyInfo.fs"
+    __SOURCE_DIRECTORY__ + pathToAssemblyInfoFile
     |> File.readAsString
     |> function
         | Regex "AssemblyInformationalVersionAttribute\(\"(.+)\"\)>]" [ version ] ->
             SemVer.parse version
         | _ -> failwith "Could not parse assembly version"
 
-let flip f a b = f b a
 let (==>) xs y = xs |> Seq.iter (fun x -> x ==> y |> ignore)
 let (?=>) xs y = xs |> Seq.iter (fun x -> x ?=> y |> ignore)
 
 Target.initEnvironment ()
 
 Target.create "Clean" <| fun _ ->
-    [|"bin"; "obj"|]
-    |> Seq.collect (fun x -> !!(sprintf "src/**/%s" x))
-    |> Seq.append [|"bin"; "obj" |]
+    lift2 tuple2 [|"src"; "tests"|] [|"bin"; "obj"|]
+    >>= fun (x,y) -> !!(sprintf "%s/**/%s" x y) |> toSeq
+    |> plus ([|"bin"; "obj"|] |> toSeq)
     |> Shell.deleteDirs
 
     Shell.cleanDir "publish"
 
-Target.create "Build" <| fun _ -> DotNet.build id "src/Milekic.YoLo"
+Target.create "Build" <| fun _ ->
+    DotNet.build id (productName + ".sln")
+    !! "src/**/*.fsproj"
+    |> toSeq
+    |>> (fun projectPath ->
+        (Path.GetDirectoryName projectPath) </> "bin/Release",
+        "bin" </> (Path.GetFileNameWithoutExtension projectPath))
+    |> iter (fun (source, target) -> Shell.copyDir target source (konst true))
+
 [ "Clean" ]  ?=> "Build"
 
 Target.create "Pack" <| fun _ ->
@@ -61,16 +72,24 @@ Target.create "Pack" <| fun _ ->
                     { p.MSBuildParams with
                         Properties =
                             newBuildProperties @ p.MSBuildParams.Properties }})
-        "src/Milekic.YoLo"
+        (productName + ".sln")
 
 [ "Clean" ] ==> "Pack"
+
+Target.create "Test" <| fun _ ->
+    !! "tests/*.Tests/"
+    |> toSeq
+    |>> (fun path ->
+        DotNet.exec (fun o -> { o with WorkingDirectory = path }) "run" "-c Release")
+    |> iter (fun (r : ProcessResult) -> if r.ExitCode <> 0 then failwith "Tests failed")
+[ "Build"; "Pack" ] ?=> "Test"
 
 Target.create "TestSourceLink" <| fun _ ->
     !! "publish/*.nupkg"
     |> flip Seq.iter <| fun p ->
         DotNet.exec
             id
-            "packages/build/sourcelink/tools/netcoreapp2.1/any/sourcelink.dll"
+            "sourcelink"
             (sprintf "test %s" p)
         |> fun r -> if not r.OK then failwithf "Source link check for %s failed." p
 
@@ -96,7 +115,7 @@ Target.create "UploadArtifactsToGitHub" <| fun c ->
     |> GitHub.publishDraft
     |> Async.RunSynchronously
 
-[ "TestSourceLink" ] ==> "UploadArtifactsToGitHub"
+[ "TestSourceLink"; "Test" ] ==> "UploadArtifactsToGitHub"
 
 Target.create "UploadPackageToNuget" <| fun _ ->
     Paket.push <| fun p ->
@@ -104,20 +123,14 @@ Target.create "UploadPackageToNuget" <| fun _ ->
             ToolType = ToolType.CreateLocalTool()
             WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
 
-[ "TestSourceLink" ] ==> "UploadPackageToNuget"
+[ "TestSourceLink"; "Test" ] ==> "UploadPackageToNuget"
 
 Target.create "Release" <| fun _ ->
-    let remote =
-        CommandHelper.getGitResult "" "remote -v"
-        |> Seq.filter (fun s -> s.EndsWith("(push)"))
-        |> Seq.tryFind (fun s -> s.Contains(gitOwner + "/" + productName))
-        |> function | None -> gitHome + "/" + productName
-                    | Some s -> s.Split().[0]
     CommandHelper.directRunGitCommandAndFail
         ""
-        (sprintf "push -f %s HEAD:release" remote)
+        (sprintf "push -f %s HEAD:release" gitHome)
 
-[ "Clean"; "Build" ] ==> "Release"
+[ "Clean"; "Build"; "Test" ] ==> "Release"
 
 Target.create "AppVeyor" <| fun _ ->
     let finalVersion = finalVersion.Value
@@ -132,6 +145,9 @@ Target.create "AppVeyor" <| fun _ ->
 
         AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
 
-[ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
+[ "UploadArtifactsToGitHub"; "UploadPackageToNuget"; "Test" ] ==> "AppVeyor"
 
-Target.runOrDefault "Build"
+Target.create "Default" ignore
+[ "Build"; "Test" ] ==> "Default"
+
+Target.runOrDefault "Default"
