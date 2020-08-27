@@ -3,6 +3,8 @@ module Milekic.YoLo.Result
 open Result
 open System
 
+#nowarn "44"
+
 [<Obsolete("Use FSharpPlus instead")>]
 let either ok error = function | Ok x -> ok x | Error x -> error x
 [<Obsolete("Use FSharpPlus instead")>]
