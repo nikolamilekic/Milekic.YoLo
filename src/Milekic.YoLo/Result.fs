@@ -22,7 +22,6 @@ let defaultWith f = either id f
 [<Obsolete("Use FSharpPlus instead")>]
 let defaultValue x = defaultWith (fun _ -> x)
 let failOnError message = defaultWith <| fun _ -> failwith message
-[<Obsolete("Use FSharpPlus instead")>]
 let traverse f (source : _ seq) =
     use enumerator = source.GetEnumerator()
     let rec inner state =
@@ -31,7 +30,6 @@ let traverse f (source : _ seq) =
         | Error x -> Error x
         | Ok x -> inner (x::state)
     inner []
-[<Obsolete("Use FSharpPlus instead")>]
 let sequence source = traverse id source
 
 [<Obsolete("Use FSharpPlus instead")>]

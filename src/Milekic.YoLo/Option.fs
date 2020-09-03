@@ -18,7 +18,6 @@ module List =
 
 open Option
 
-[<Obsolete("Use FSharpPlus instead")>]
 module Option =
     let traverse f (source : _ seq) =
         use enumerator = source.GetEnumerator()
@@ -31,12 +30,14 @@ module Option =
 
     let sequence source = traverse id source
 
+    [<Obsolete("Use FSharpPlus instead")>]
     module Operators =
         let inline (>>=) e f = bind f e
         let inline (>=>) f1 f2 e = f1 e >>= f2
         let inline (>>-) e f = map f e
         let inline (>>-.) x value = map (fun _ -> value) x
 
+    [<Obsolete("Use FSharpPlus instead")>]
     type Builder() =
         member __.Bind(e, f) = bind f e
         member __.Return x = Some x
