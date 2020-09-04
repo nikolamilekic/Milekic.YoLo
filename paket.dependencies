@@ -1,7 +1,7 @@
 storage none
 source https://www.nuget.org/api/v2
 
-framework: auto-detect
+framework: net45, netstandard2.0
 
 nuget FSharp.Core >= 4.3.4 lowest_matching: true
 nuget GitInfo = 2.0.26 copy_local: true
