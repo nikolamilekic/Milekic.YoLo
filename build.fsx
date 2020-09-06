@@ -122,7 +122,7 @@ Target.create "UploadArtifactsToGitHub" <| fun c ->
 [ "TestSourceLink"; "Test" ] ==> "UploadArtifactsToGitHub"
 
 Target.create "UploadPackageToNuget" <| fun _ ->
-    if uploadPackageToNuget then
+    if uploadPackageToNuget && finalVersion.Value.PreRelease.IsNone then
         Paket.push <| fun p ->
             { p with
                 ToolType = ToolType.CreateLocalTool()
