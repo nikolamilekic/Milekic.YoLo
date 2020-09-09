@@ -15,9 +15,13 @@ module FinalVersion =
 
     open System.Text.RegularExpressions
     open Fake.IO
+    open Fake.IO.Globbing.Operators
     open Fake.Core
 
-    let pathToAssemblyInfoFile = "/src/Milekic.YoLo/obj/Release/netstandard2.0/Milekic.YoLo.AssemblyInfo.fs"
+    let pathToAssemblyInfoFile =
+        lazy
+        !! "src/Milekic.YoLo/obj/Release/**/Milekic.YoLo.AssemblyInfo.fs"
+        |> Seq.head
 
     let (|Regex|_|) pattern input =
         let m = Regex.Match(input, pattern)
@@ -26,7 +30,7 @@ module FinalVersion =
 
     let finalVersion =
         lazy
-        __SOURCE_DIRECTORY__ + pathToAssemblyInfoFile
+        pathToAssemblyInfoFile.Value
         |> File.readAsString
         |> function
             | Regex "AssemblyInformationalVersionAttribute\(\"(.+)\"\)>]" [ version ] ->
@@ -63,33 +67,16 @@ module Clean =
         Shell.cleanDir "publish"
 
 module Build =
-    // nuget Fake.IO.FileSystem
     // nuget Fake.DotNet.Cli
-    // nuget Fake.BuildServer.AppVeyor
 
     open Fake.DotNet
     open Fake.Core
-    open Fake.BuildServer
 
     open CustomTargetOperators
-    open FinalVersion
 
     let projectToBuild = "Milekic.YoLo.sln"
 
-    Target.create "Build" <| fun _ ->
-        DotNet.build id projectToBuild
-
-        if AppVeyor.detect() then
-            let finalVersion = finalVersion.Value
-            let appVeyorVersion =
-                sprintf
-                    "%d.%d.%d.%s"
-                    finalVersion.Major
-                    finalVersion.Minor
-                    finalVersion.Patch
-                    AppVeyor.Environment.BuildNumber
-
-            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
+    Target.create "Build" <| fun _ -> DotNet.build id projectToBuild
 
     [ "Clean" ]  ?=> "Build"
 
@@ -292,12 +279,39 @@ module Release =
     [ "Clean"; "Build"; "Test" ] ==> "Release"
 
 module AppVeyor =
+    //nuget Fake.BuildServer.AppVeyor
+
     open Fake.Core
+    open Fake.BuildServer
 
     open CustomTargetOperators
+    open FinalVersion
+
+    Target.create "SetAppVeyorVersion" <| fun _ ->
+        if AppVeyor.detect() then
+            let finalVersion = finalVersion.Value
+            let appVeyorVersion =
+                sprintf
+                    "%d.%d.%d.%s"
+                    finalVersion.Major
+                    finalVersion.Minor
+                    finalVersion.Patch
+                    AppVeyor.Environment.BuildNumber
+
+            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
+
+    [ "SetAppVeyorVersion" ] ==> "UploadPackageToNuget"
+    [ "SetAppVeyorVersion" ] ==> "UploadArtifactsToGitHub"
+    [ "Build"; "Publish" ] ?=> "SetAppVeyorVersion"
 
     Target.create "AppVeyor" ignore
-    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
+    [
+        "UploadArtifactsToGitHub"
+        "UploadPackageToNuget"
+        "Publish"
+        "SetAppVeyorVersion"
+    ]
+    ==> "AppVeyor"
 
 module Default =
     open Fake.Core
