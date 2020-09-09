@@ -11,6 +11,12 @@ branches:
   only:
   - release
 artifacts:
-  - path: publish/*
+  - path: publish\artifacts.zip
+  - path: publish\**\*.nupkg
 nuget:
   project_feed: true
+environment:
+  GitHubToken:
+    secure: Eymchtm/ooRHPQDIZ99Uyl6cjSHSJ8bl0saXVbO1BhAT+jDD1s/K87WsZvSP2Qgm
+  NUGET_KEY:
+    secure: illnma78GPXDdNpnrKyszkPvsO35AnXH3ayGNXtzm4vXpY6k2PkyM5FAKD1/Gqld
