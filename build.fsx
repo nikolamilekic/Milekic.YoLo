@@ -49,23 +49,6 @@ module ReleaseNotesParsing =
         (ReleaseNotes.load releaseNotesFile).Notes
         |> String.concat Environment.NewLine
 
-module ZipArtifacts =
-    //nuget Fake.IO.FileSystem
-    //nuget Fake.IO.Zip
-
-    open Fake.IO
-    open Fake.IO.Globbing.Operators
-
-    let zipArtifacts =
-        lazy
-            let files = (!! "publish/**") |> Seq.toList
-            printfn "Creating zip file from files:\n%A" files
-            Zip.zip
-                "publish"
-                "publish/artifacts.zip"
-                files
-        |> fun x -> fun () -> x.Value
-
 module Clean =
     //nuget FSharpPlus
     //nuget Fake.IO.FileSystem
@@ -84,18 +67,34 @@ module Clean =
         Shell.cleanDir "publish"
 
 module Build =
-    // nuget Fake.DotNet.Cli
+    //nuget Fake.DotNet.Cli
+    //nuget Fake.BuildServer.AppVeyor
 
     open Fake.DotNet
     open Fake.Core
+    open Fake.Core.TargetOperators
+    open Fake.BuildServer
 
-    open CustomTargetOperators
+    open FinalVersion
 
     let projectToBuild = "Milekic.YoLo.sln"
 
-    Target.create "Build" <| fun _ -> DotNet.build id projectToBuild
+    Target.create "Build" <| fun _ ->
+        DotNet.build id projectToBuild
 
-    [ "Clean" ]  ?=> "Build"
+        if AppVeyor.detect() then
+            let finalVersion = finalVersion.Value
+            let appVeyorVersion =
+                sprintf
+                    "%d.%d.%d.%s"
+                    finalVersion.Major
+                    finalVersion.Minor
+                    finalVersion.Patch
+                    AppVeyor.Environment.BuildNumber
+
+            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
+
+    "Clean" ?=> "Build"
 
 module Pack =
     //nuget Fake.DotNet.Cli
@@ -127,17 +126,20 @@ module Publish =
     //nuget FSharpPlus
     //nuget Fake.DotNet.Cli
     //nuget Fake.IO.FileSystem
+    //nuget Fake.IO.Zip
 
     open System.IO
     open Fake.DotNet
     open Fake.Core
     open Fake.IO
+    open Fake.IO.Globbing.Operators
     open Fake.IO.FileSystemOperators
     open FSharpPlus
 
+    open FinalVersion
     open CustomTargetOperators
 
-    let projectsToPublish = [ "src/Milekic.YoLo", Some "netstandard2.0", Some "osx-x64", None]
+    let projectsToPublish = [ ]
 
     Target.create "Publish" <| fun _ ->
         for (project, framework, runtime, custom) in projectsToPublish do
@@ -148,7 +150,7 @@ module Publish =
                     Runtime = runtime
                     Common = { p.Common with CustomParams = custom } } )
 
-            let source =
+            let sourceFolder =
                 seq {
                     project |> Some
                     "bin/Release" |> Some
@@ -159,7 +161,7 @@ module Publish =
                 |> Seq.choose id
                 |> Seq.fold (</>) ""
 
-            let target =
+            let targetFolder =
                 seq {
                     "publish" |> Some
                     Path.GetFileName project |> Some
@@ -169,9 +171,26 @@ module Publish =
                 |> Seq.choose id
                 |> Seq.fold (</>) ""
 
-            Shell.copyDir target source (konst true)
+            Shell.copyDir targetFolder sourceFolder (konst true)
 
-    [ "Clean" ] ==> "Publish"
+            let zipFileName =
+                seq {
+                    sprintf
+                        "%s.%s"
+                        (Path.GetFileName project)
+                        (finalVersion.Value.NormalizeToShorter()) |> Some
+                    framework
+                    runtime
+                }
+                |> Seq.choose id
+                |> String.concat "."
+
+            Zip.zip
+                targetFolder
+                (sprintf "publish/%s.zip" zipFileName)
+                !! (targetFolder </> "**")
+
+    [ "Clean"; "Build" ] ==> "Publish"
 
 module Test =
     //nuget FSharpPlus
@@ -180,11 +199,10 @@ module Test =
 
     open System.IO
     open Fake.Core
+    open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
     open Fake.DotNet.Testing
     open FSharpPlus
-
-    open CustomTargetOperators
 
     Target.create "Test" <| fun _ ->
         !! "tests/**/*.fsproj"
@@ -194,7 +212,7 @@ module Test =
             !! (sprintf "tests/%s/bin/release/**/%s.dll" projectName projectName)
             |> toSeq
         |> Expecto.run id
-    [ "Build"; "Pack" ] ?=> "Test"
+    "Build" ==> "Test"
 
 module TestSourceLink =
     //nuget FSharpPlus
@@ -202,11 +220,10 @@ module TestSourceLink =
     //nuget Fake.DotNet.Cli
 
     open Fake.Core
+    open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
     open Fake.DotNet
     open FSharpPlus
-
-    open CustomTargetOperators
 
     Target.create "TestSourceLink" <| fun _ ->
         !! "publish/*.nupkg"
@@ -217,7 +234,7 @@ module TestSourceLink =
                 (sprintf "test %s" p)
             |> fun r -> if not r.OK then failwithf "Source link check for %s failed." p
 
-    [ "Pack" ] ==> "TestSourceLink"
+    "Pack" ==> "TestSourceLink"
 
 module UploadArtifactsToGitHub =
     //nuget Fake.Api.GitHub
@@ -232,47 +249,43 @@ module UploadArtifactsToGitHub =
     open CustomTargetOperators
     open FinalVersion
     open ReleaseNotesParsing
-    open ZipArtifacts
 
     let productName = "Milekic.YoLo"
     let gitOwner = "nikolamilekic"
 
-    Target.create "UploadArtifactsToGitHub" <| fun c ->
+    Target.create "UploadArtifactsToGitHub" <| fun _ ->
         let finalVersion = finalVersion.Value
-        if c.Context.FinalTarget = "AppVeyor" && finalVersion.PreRelease.IsSome
-        then ()
-        else
-
-        zipArtifacts()
-
-        let token = Environment.environVarOrFail "GitHubToken"
-        GitHub.createClientWithToken token
-        |> GitHub.createRelease
-            gitOwner
-            productName
-            (finalVersion.NormalizeToShorter())
-            (fun o ->
-                { o with
-                    Body = releaseNotes.Value
-                    Prerelease = (finalVersion.PreRelease <> None)
-                    TargetCommitish = AppVeyor.Environment.RepoCommit })
-        |> GitHub.uploadFiles (!! "publish/**/*.nupkg" ++ "publish/artifacts.zip")
-        |> GitHub.publishDraft
-        |> Async.RunSynchronously
+        if AppVeyor.detect() && finalVersion.PreRelease.IsNone then
+            let token = Environment.environVarOrFail "GitHubToken"
+            GitHub.createClientWithToken token
+            |> GitHub.createRelease
+                gitOwner
+                productName
+                (finalVersion.NormalizeToShorter())
+                (fun o ->
+                    { o with
+                        Body = releaseNotes.Value
+                        Prerelease = (finalVersion.PreRelease <> None)
+                        TargetCommitish = AppVeyor.Environment.RepoCommit })
+            |> GitHub.uploadFiles (!! "publish/*.nupkg" ++ "publish/*.zip")
+            |> GitHub.publishDraft
+            |> Async.RunSynchronously
 
     [ "Pack"; "Publish"; "Test"; "TestSourceLink" ] ==> "UploadArtifactsToGitHub"
 
 module UploadPackageToNuget =
     //nuget Fake.DotNet.Paket
+    //nuget Fake.BuildServer.AppVeyor
 
     open Fake.Core
     open Fake.DotNet
+    open Fake.BuildServer
 
     open FinalVersion
     open CustomTargetOperators
 
     Target.create "UploadPackageToNuget" <| fun _ ->
-        if finalVersion.Value.PreRelease.IsNone then
+        if AppVeyor.detect() && finalVersion.Value.PreRelease.IsNone then
             Paket.push <| fun p ->
                 { p with
                     ToolType = ToolType.CreateLocalTool()
@@ -298,42 +311,12 @@ module Release =
     [ "Clean"; "Build"; "Test" ] ==> "Release"
 
 module AppVeyor =
-    //nuget Fake.BuildServer.AppVeyor
-
     open Fake.Core
-    open Fake.BuildServer
 
     open CustomTargetOperators
-    open FinalVersion
-    open ZipArtifacts
 
-    Target.create "SetAppVeyorVersion" <| fun _ ->
-        if AppVeyor.detect() then
-            let finalVersion = finalVersion.Value
-            let appVeyorVersion =
-                sprintf
-                    "%d.%d.%d.%s"
-                    finalVersion.Major
-                    finalVersion.Minor
-                    finalVersion.Patch
-                    AppVeyor.Environment.BuildNumber
-
-            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
-
-    [ "SetAppVeyorVersion" ] ==> "UploadPackageToNuget"
-    [ "SetAppVeyorVersion" ] ==> "UploadArtifactsToGitHub"
-    [ "Build"; "Publish" ] ?=> "SetAppVeyorVersion"
-
-    Target.create "AppVeyor" (ignore >> zipArtifacts)
-    [
-        "UploadArtifactsToGitHub"
-        "UploadPackageToNuget"
-        "Pack"
-        "Publish"
-        "Test"
-        "TestSourceLink"
-        "SetAppVeyorVersion"
-    ]
+    Target.create "AppVeyor" ignore
+    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ]
     ==> "AppVeyor"
 
 module Default =
