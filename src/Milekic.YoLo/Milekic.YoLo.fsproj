@@ -29,7 +29,6 @@
   <PropertyGroup>
     <Description>Utilities</Description>
     <Authors>Nikola Milekic</Authors>
-    <RepositoryUrl>https://github.com/nikolamilekic/Milekic.YoLo/</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
