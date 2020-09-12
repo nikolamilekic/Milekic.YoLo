@@ -310,6 +310,7 @@ module Release =
     open CustomTargetOperators
 
     let pathToThisAssemblyFile =
+        lazy
         !! "src/*/obj/Release/**/ThisAssembly.GitInfo.g.fs"
         |> Seq.head
 
@@ -319,7 +320,8 @@ module Release =
         else None
 
     let gitHome =
-        pathToThisAssemblyFile
+        lazy
+        pathToThisAssemblyFile.Value
         |> File.readAsString
         |> function
             | Regex "RepositoryUrl = @\"(.+)\"" [ gitHome ] -> gitHome
@@ -328,7 +330,7 @@ module Release =
     Target.create "Release" <| fun _ ->
         Git.CommandHelper.directRunGitCommandAndFail
             ""
-            (sprintf "push -f %s HEAD:release" gitHome)
+            (sprintf "push -f %s HEAD:release" gitHome.Value)
 
     [ "Clean"; "Build"; "Test" ] ==> "Release"
 
