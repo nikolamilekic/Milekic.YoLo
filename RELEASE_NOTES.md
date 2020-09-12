@@ -20,5 +20,5 @@
 * atomicUpdateQuery
 * List, Seq onlySome
 
-## New in 1.0 (Released 2018/04/27)
+## New in 0.1 (Released 2018/04/27)
 * Initial release
