@@ -20,7 +20,7 @@ module FinalVersion =
 
     let pathToAssemblyInfoFile =
         lazy
-        !! "src/Milekic.YoLo/obj/Release/**/Milekic.YoLo.AssemblyInfo.fs"
+        !! "src/*/obj/Release/**/*.AssemblyInfo.fs"
         |> Seq.head
 
     let (|Regex|_|) pattern input =
@@ -69,15 +69,17 @@ module Clean =
 module Build =
     //nuget Fake.DotNet.Cli
     //nuget Fake.BuildServer.AppVeyor
+    //nuget Fake.IO.FileSystem
 
     open Fake.DotNet
     open Fake.Core
     open Fake.Core.TargetOperators
     open Fake.BuildServer
+    open Fake.IO.Globbing.Operators
 
     open FinalVersion
 
-    let projectToBuild = "Milekic.YoLo.sln"
+    let projectToBuild = !! "*.sln" |> Seq.head
 
     Target.create "Build" <| fun _ ->
         DotNet.build id projectToBuild
@@ -98,14 +100,16 @@ module Build =
 
 module Pack =
     //nuget Fake.DotNet.Cli
+    //nuget Fake.IO.FileSystem
 
     open Fake.DotNet
     open Fake.Core
+    open Fake.IO.Globbing.Operators
 
     open CustomTargetOperators
     open ReleaseNotesParsing
 
-    let projectToPack = "Milekic.YoLo.sln"
+    let projectToPack = !! "*.sln" |> Seq.head
 
     Target.create "Pack" <| fun _ ->
         let newBuildProperties = [ "PackageReleaseNotes", releaseNotes.Value ]
@@ -241,6 +245,7 @@ module UploadArtifactsToGitHub =
     //nuget Fake.IO.FileSystem
     //nuget Fake.BuildServer.AppVeyor
 
+    open System.IO
     open Fake.Core
     open Fake.Api
     open Fake.IO.Globbing.Operators
@@ -250,7 +255,7 @@ module UploadArtifactsToGitHub =
     open FinalVersion
     open ReleaseNotesParsing
 
-    let productName = "Milekic.YoLo"
+    let productName = !! "*.sln" |> Seq.head |> Path.GetFileNameWithoutExtension
     let gitOwner = "nikolamilekic"
 
     Target.create "UploadArtifactsToGitHub" <| fun _ ->
@@ -296,12 +301,29 @@ module UploadPackageToNuget =
 module Release =
     //nuget Fake.Tools.Git
 
+    open System.Text.RegularExpressions
+    open Fake.IO
+    open Fake.IO.Globbing.Operators
     open Fake.Core
     open Fake.Tools
 
     open CustomTargetOperators
 
-    let gitHome = "git@github.com:nikolamilekic/Milekic.YoLo.git"
+    let pathToThisAssemblyFile =
+        !! "src/*/obj/Release/**/ThisAssembly.GitInfo.g.fs"
+        |> Seq.head
+
+    let (|Regex|_|) pattern input =
+        let m = Regex.Match(input, pattern)
+        if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
+        else None
+
+    let gitHome =
+        pathToThisAssemblyFile
+        |> File.readAsString
+        |> function
+            | Regex "RepositoryUrl = @\"(.+)\"" [ gitHome ] -> gitHome
+            | _ -> failwith "Could not parse this assembly file"
 
     Target.create "Release" <| fun _ ->
         Git.CommandHelper.directRunGitCommandAndFail
