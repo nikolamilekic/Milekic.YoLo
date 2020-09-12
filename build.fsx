@@ -133,6 +133,7 @@ module Publish =
     //nuget Fake.IO.Zip
 
     open System.IO
+    open System.Text.RegularExpressions
     open Fake.DotNet
     open Fake.Core
     open Fake.IO
@@ -143,7 +144,25 @@ module Publish =
     open FinalVersion
     open CustomTargetOperators
 
-    let projectsToPublish = [ ]
+    let (|Regex|_|) pattern input =
+        let m = Regex.Match(input, pattern)
+        if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
+        else None
+
+    let projectsToPublish =
+        !! "src/*/*.fsproj"
+        |> Seq.toList
+        >>= fun projectFile ->
+            match File.readAsString projectFile with
+            | Regex "TargetFramework.+(netcoreapp.+)<\/TargetFramework" [ framework ] ->
+                let projectDirectory = Path.GetDirectoryName projectFile
+                [ "osx-x64"; "win-x64"; "linux-arm" ]
+                |>> fun runtime ->
+                    projectDirectory,
+                    Some framework,
+                    Some runtime,
+                    Some "-p:PublishSingleFile=true -p:PublishTrimmed=true"
+            | _ -> []
 
     Target.create "Publish" <| fun _ ->
         for (project, framework, runtime, custom) in projectsToPublish do
