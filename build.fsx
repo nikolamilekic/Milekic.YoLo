@@ -156,7 +156,7 @@ module Publish =
             match File.readAsString projectFile with
             | Regex "TargetFramework.+(netcoreapp.+)<\/TargetFramework" [ framework ] ->
                 let projectDirectory = Path.GetDirectoryName projectFile
-                [ "osx-x64"; "win-x64"; "linux-arm" ]
+                [ "osx-x64"; "win-x64"; "linux-arm"; "linux-x64" ]
                 |>> fun runtime ->
                     projectDirectory,
                     Some framework,
