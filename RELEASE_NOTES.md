@@ -1,3 +1,6 @@
+## New in 2.2 (Released 2020/12/13)
+* Now targeting .NET 5
+
 ## New in 2.1 (Released 2020/09/10)
 * Regex partial active pattern
 * Update and UpdateResult improvements
