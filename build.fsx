@@ -68,33 +68,17 @@ module Clean =
 
 module Build =
     //nuget Fake.DotNet.Cli
-    //nuget Fake.BuildServer.AppVeyor
     //nuget Fake.IO.FileSystem
 
     open Fake.DotNet
     open Fake.Core
     open Fake.Core.TargetOperators
-    open Fake.BuildServer
     open Fake.IO.Globbing.Operators
-
-    open FinalVersion
 
     let projectToBuild = !! "*.sln" |> Seq.head
 
     Target.create "Build" <| fun _ ->
         DotNet.build id projectToBuild
-
-        if AppVeyor.detect() then
-            let finalVersion = finalVersion.Value
-            let appVeyorVersion =
-                sprintf
-                    "%d.%d.%d.%s"
-                    finalVersion.Major
-                    finalVersion.Minor
-                    finalVersion.Patch
-                    AppVeyor.Environment.BuildNumber
-
-            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
 
     "Clean" ?=> "Build"
 
@@ -285,7 +269,7 @@ module TestSourceLink =
 module UploadArtifactsToGitHub =
     //nuget Fake.Api.GitHub
     //nuget Fake.IO.FileSystem
-    //nuget Fake.BuildServer.AppVeyor
+    //nuget Fake.BuildServer.GitHubActions
 
     open System.IO
     open Fake.Core
@@ -302,7 +286,7 @@ module UploadArtifactsToGitHub =
 
     Target.create "UploadArtifactsToGitHub" <| fun _ ->
         let finalVersion = finalVersion.Value
-        if AppVeyor.detect() && finalVersion.PreRelease.IsNone then
+        if GitHubActions.detect() && finalVersion.PreRelease.IsNone then
             let token = Environment.environVarOrFail "GitHubToken"
             GitHub.createClientWithToken token
             |> GitHub.createRelease
@@ -313,32 +297,46 @@ module UploadArtifactsToGitHub =
                     { o with
                         Body = releaseNotes.Value
                         Prerelease = (finalVersion.PreRelease <> None)
-                        TargetCommitish = AppVeyor.Environment.RepoCommit })
+                        TargetCommitish = GitHubActions.Environment.Sha })
             |> GitHub.uploadFiles (!! "publish/*.nupkg" ++ "publish/*.zip")
             |> GitHub.publishDraft
             |> Async.RunSynchronously
 
     [ "Pack"; "Publish"; "Test"; "TestSourceLink" ] ==> "UploadArtifactsToGitHub"
 
-module UploadPackageToNuget =
+module UploadPackage =
     //nuget Fake.DotNet.Paket
-    //nuget Fake.BuildServer.AppVeyor
+    //nuget Fake.BuildServer.GitHubActions
 
     open Fake.Core
     open Fake.DotNet
     open Fake.BuildServer
+    open Fake.Core.TargetOperators
 
     open FinalVersion
     open CustomTargetOperators
 
+    let gitHubPackagesPublishUrl = "https://nuget.pkg.github.com/nikolamilekic/index.json"
+
     Target.create "UploadPackageToNuget" <| fun _ ->
-        if AppVeyor.detect() && finalVersion.Value.PreRelease.IsNone then
+        if GitHubActions.detect() && finalVersion.Value.PreRelease.IsNone then
             Paket.push <| fun p ->
                 { p with
                     ToolType = ToolType.CreateLocalTool()
                     WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
 
     [ "Pack"; "Test"; "TestSourceLink" ] ==> "UploadPackageToNuget"
+
+    Target.create "UploadPackageToGitHubPackages" <| fun _ ->
+        if GitHubActions.detect() then
+            Paket.push <| fun p ->
+                { p with
+                    ToolType = ToolType.CreateLocalTool()
+                    WorkingDir = __SOURCE_DIRECTORY__ + "/publish"
+                    ApiKey = Environment.environVarOrFail "GitHubToken"
+                    PublishUrl = gitHubPackagesPublishUrl }
+
+    [ "Pack"; "Test"; "TestSourceLink" ] ==> "UploadPackageToGitHubPackages"
 
 module Release =
     //nuget Fake.Tools.Git
@@ -376,14 +374,21 @@ module Release =
 
     [ "Clean"; "Build"; "Test" ] ==> "Release"
 
-module AppVeyor =
+module GitHubActions =
     open Fake.Core
 
     open CustomTargetOperators
 
-    Target.create "AppVeyor" ignore
-    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ]
-    ==> "AppVeyor"
+    Target.create "ReleaseAction" ignore
+    [
+        "UploadArtifactsToGitHub"
+        "UploadPackageToNuget"
+        "UploadPackageToGitHubPackages"
+    ]
+    ==> "ReleaseAction"
+
+    Target.create "BuildAction" ignore
+    [ "Build"; "Test" ] ==> "BuildAction"
 
 module Default =
     open Fake.Core
