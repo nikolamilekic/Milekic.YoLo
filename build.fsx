@@ -286,6 +286,7 @@ module UploadArtifactsToGitHub =
     //nuget Fake.Api.GitHub
     //nuget Fake.IO.FileSystem
     //nuget Fake.BuildServer.AppVeyor
+    //nuget Fake.BuildServer.GitHubActions
 
     open System.IO
     open Fake.Core
@@ -302,7 +303,11 @@ module UploadArtifactsToGitHub =
 
     Target.create "UploadArtifactsToGitHub" <| fun _ ->
         let finalVersion = finalVersion.Value
-        if AppVeyor.detect() && finalVersion.PreRelease.IsNone then
+        let targetCommit =
+            if AppVeyor.detect() then AppVeyor.Environment.RepoCommit
+            elif GitHubActions.detect() then GitHubActions.Environment.Sha
+            else ""
+        if targetCommit <> "" && finalVersion.PreRelease.IsNone then
             let token = Environment.environVarOrFail "GitHubToken"
             GitHub.createClientWithToken token
             |> GitHub.createRelease
@@ -313,7 +318,7 @@ module UploadArtifactsToGitHub =
                     { o with
                         Body = releaseNotes.Value
                         Prerelease = (finalVersion.PreRelease <> None)
-                        TargetCommitish = AppVeyor.Environment.RepoCommit })
+                        TargetCommitish = targetCommit })
             |> GitHub.uploadFiles (!! "publish/*.nupkg" ++ "publish/*.zip")
             |> GitHub.publishDraft
             |> Async.RunSynchronously
@@ -323,6 +328,7 @@ module UploadArtifactsToGitHub =
 module UploadPackageToNuget =
     //nuget Fake.DotNet.Paket
     //nuget Fake.BuildServer.AppVeyor
+    //nuget Fake.BuildServer.GitHubActions
 
     open Fake.Core
     open Fake.DotNet
@@ -332,7 +338,8 @@ module UploadPackageToNuget =
     open CustomTargetOperators
 
     Target.create "UploadPackageToNuget" <| fun _ ->
-        if AppVeyor.detect() && finalVersion.Value.PreRelease.IsNone then
+        if (AppVeyor.detect() || GitHubActions.detect()) &&
+            finalVersion.Value.PreRelease.IsNone then
             Paket.push <| fun p ->
                 { p with
                     ToolType = ToolType.CreateLocalTool()
@@ -384,6 +391,14 @@ module AppVeyor =
     Target.create "AppVeyor" ignore
     [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ]
     ==> "AppVeyor"
+
+module GitHubActions =
+    open Fake.Core
+
+    open CustomTargetOperators
+
+    Target.create "BuildAction" ignore
+    [ "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
 
 module Default =
     open Fake.Core
