@@ -162,7 +162,8 @@ module Publish =
                     Some (outputType.ToLower())
                 | _ -> None
             projectFile, contents, outputType
-        |> Seq.filter (fun (_, _, outputType) -> outputType = Some "exe")
+        |> Seq.filter (fun (_, _, outputType) ->
+            outputType = Some "exe" || outputType = Some "winexe")
         >>= fun (projectFile, contents, _) ->
             match contents with
             | Regex "<TargetFramework.*>(.+)<\/TargetFramework" [ frameworks ] ->
@@ -389,8 +390,7 @@ module AppVeyor =
     open CustomTargetOperators
 
     Target.create "AppVeyor" ignore
-    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ]
-    ==> "AppVeyor"
+    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
 
 module GitHubActions =
     open Fake.Core
@@ -399,6 +399,9 @@ module GitHubActions =
 
     Target.create "BuildAction" ignore
     [ "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
+
+    Target.create "ReleaseAction" ignore
+    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "ReleaseAction"
 
 module Default =
     open Fake.Core
