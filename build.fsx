@@ -1,6 +1,6 @@
 #load ".fake/build.fsx/intellisense.fsx"
 
-Fake.Core.Target.initEnvironment ()
+#nowarn "1182"
 
 module CustomTargetOperators =
     //nuget Fake.Core.Target
@@ -12,30 +12,38 @@ module CustomTargetOperators =
 
 module FinalVersion =
     //nuget Fake.IO.FileSystem
+    //nuget Fake.Core.SemVer
 
     open System.Text.RegularExpressions
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.Core
 
-    let pathToAssemblyInfoFile =
-        lazy
-        !! "src/*/obj/Release/**/*.AssemblyInfo.fs"
-        |> Seq.head
-
     let (|Regex|_|) pattern input =
         let m = Regex.Match(input, pattern)
         if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
         else None
 
+    let getFinalVersionFromAssemblyInfo x =
+        match File.readAsString x with
+        | Regex "AssemblyInformationalVersionAttribute\(\"(.+)\"\)" [ version ] ->
+            Some (SemVer.parse version)
+        | _ -> None
+
+    let getFinalVersionForProject project =
+        let assemblyInfoFileGlob =
+            [ Path.getDirectory project; "obj/Release/**/*.AssemblyInfo.?s" ]
+            |> List.fold Path.combine ""
+        !!assemblyInfoFileGlob
+        |> Seq.tryHead
+        |> Option.bind getFinalVersionFromAssemblyInfo
+
     let finalVersion =
         lazy
-        pathToAssemblyInfoFile.Value
-        |> File.readAsString
-        |> function
-            | Regex "AssemblyInformationalVersionAttribute\(\"(.+)\"\)>]" [ version ] ->
-                SemVer.parse version
-            | _ -> failwith "Could not parse assembly version"
+        !! "src/*/obj/Release/**/*.AssemblyInfo.fs"
+        |> Seq.head
+        |> getFinalVersionFromAssemblyInfo
+        |> Option.defaultWith (fun _ -> failwith "Could not parse assembly version")
 
 module ReleaseNotesParsing =
     //nuget Fake.Core.ReleaseNotes
@@ -50,21 +58,17 @@ module ReleaseNotesParsing =
         |> String.concat Environment.NewLine
 
 module Clean =
-    //nuget FSharpPlus
     //nuget Fake.IO.FileSystem
 
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.Core
-    open FSharpPlus
 
     Target.create "Clean" <| fun _ ->
-        lift2 tuple2 [|"src"; "tests"|] [|"bin"; "obj"|]
-        >>= fun (x,y) -> !!(sprintf "%s/**/%s" x y) |> toSeq
-        |> plus ([|"bin"; "obj"|] |> toSeq)
+        Seq.allPairs [|"src"; "tests"|] [|"bin"; "obj"|]
+        |> Seq.collect (fun (x, y) -> !!(sprintf "%s/**/%s" x y))
+        |> Seq.append [ "publish"; "testResults" ]
         |> Shell.deleteDirs
-
-        Shell.cleanDir "publish"
 
 module Build =
     //nuget Fake.DotNet.Cli
@@ -127,7 +131,6 @@ module Pack =
     [ "Clean"; "Build" ] ==> "Pack"
 
 module Publish =
-    //nuget FSharpPlus
     //nuget Fake.DotNet.Cli
     //nuget Fake.IO.FileSystem
     //nuget Fake.IO.Zip
@@ -139,7 +142,6 @@ module Publish =
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.IO.FileSystemOperators
-    open FSharpPlus
 
     open FinalVersion
     open CustomTargetOperators
@@ -149,87 +151,91 @@ module Publish =
         if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
         else None
 
+    let projectsToPublish = !!"src/*/*.?sproj"
     let runtimesToTarget = [ "osx-x64"; "win-x64"; "linux-arm"; "linux-x64" ]
 
-    let projectsToPublish =
-        !! "src/*/*.fsproj"
-        |> toSeq
-        |>> fun projectFile ->
-            let contents = File.readAsString projectFile
+    Target.create "Publish" <| fun _ ->
+        let projectsToPublish = query {
+            for project in projectsToPublish do
+            let projectContents = File.readAsString project
             let outputType =
-                match contents with
+                match projectContents with
                 | Regex "<OutputType>(.+)<\/OutputType>" [ outputType ] ->
                     Some (outputType.ToLower())
                 | _ -> None
-            projectFile, contents, outputType
-        |> Seq.filter (fun (_, _, outputType) ->
-            outputType = Some "exe" || outputType = Some "winexe")
-        >>= fun (projectFile, contents, _) ->
-            match contents with
-            | Regex "<TargetFramework.*>(.+)<\/TargetFramework" [ frameworks ] ->
-                let projectDirectory = Path.GetDirectoryName projectFile
-                frameworks
-                |> String.split [";"]
-                |> Seq.filter (fun x -> x.StartsWith "netcoreapp" || x = "net5.0")
-                >>= fun framework ->
-                    let custom =
-                        match framework with
-                        | x when x.StartsWith "netcoreapp3" ->
-                            Some "-p:PublishSingleFile=true -p:PublishTrimmed=true"
-                        | "net5.0" ->
-                            Some "-p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true"
-                        | _ -> None
-                    runtimesToTarget
-                    |> List.toSeq
-                    |>> fun runtime ->
-                        projectDirectory,
-                        Some framework,
-                        Some runtime,
-                        custom
-            | _ -> Seq.empty
+            let projectType =
+                match projectContents with
+                | Regex "<Project Sdk=\"(.+)\">" [ projectType ] ->
+                    Some (projectType.ToLower())
+                | _ -> None
+            where (
+                projectType = Some "microsoft.net.sdk.web" ||
+                outputType = Some "exe" ||
+                outputType = Some "winexe")
 
-    Target.create "Publish" <| fun _ ->
-        for (project, framework, runtime, custom) in projectsToPublish do
+            let runtimesToTarget =
+                match projectContents with
+                | Regex "<RuntimeIdentifier.?>(.+)<\/RuntimeIdentifier" [ runtimes ] ->
+                    runtimes |> String.splitStr ";"
+                | _ -> runtimesToTarget
+
+            for runtime in runtimesToTarget do
+
+            let targetFrameworks =
+                match projectContents with
+                | Regex "<TargetFramework.?>(.+)<\/TargetFramework" [ frameworks ] ->
+                    frameworks |> String.splitStr ";"
+                | _ -> List.empty
+
+            for framework in targetFrameworks do
+
+            let customParemeters =
+                match framework with
+                | x when x.StartsWith "netcoreapp3" ->
+                    Some "-p:PublishSingleFile=true -p:PublishTrimmed=true"
+                | "net5.0" ->
+                    Some "-p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true"
+                | _ -> None
+
+            select (project, runtime, framework, customParemeters)
+        }
+
+        for (project, runtime, framework, customParemeters) in projectsToPublish do
             project
             |> DotNet.publish (fun p ->
                 { p with
-                    Framework = framework
-                    Runtime = runtime
-                    Common = { p.Common with CustomParams = custom } } )
+                    Framework = Some framework
+                    Runtime = Some runtime
+                    Common = { p.Common with CustomParams = customParemeters } } )
 
             let sourceFolder =
                 seq {
-                    project |> Some
-                    "bin/Release" |> Some
+                    (Path.getDirectory project)
+                    "bin/Release"
                     framework
                     runtime
-                    "publish" |> Some
+                    "publish"
                 }
-                |> Seq.choose id
                 |> Seq.fold (</>) ""
 
             let targetFolder =
                 seq {
-                    "publish" |> Some
-                    Path.GetFileName project |> Some
+                    "publish"
+                    Path.GetFileNameWithoutExtension project
                     framework
                     runtime
                 }
-                |> Seq.choose id
                 |> Seq.fold (</>) ""
 
-            Shell.copyDir targetFolder sourceFolder (konst true)
+            Shell.copyDir targetFolder sourceFolder (fun _ -> true)
 
             let zipFileName =
                 seq {
-                    sprintf
-                        "%s.%s"
-                        (Path.GetFileName project)
-                        (finalVersion.Value.NormalizeToShorter()) |> Some
+                    Path.GetFileNameWithoutExtension project
+                    finalVersion.Value.NormalizeToShorter()
                     framework
                     runtime
                 }
-                |> Seq.choose id
                 |> String.concat "."
 
             Zip.zip
@@ -240,7 +246,6 @@ module Publish =
     [ "Clean"; "Build" ] ==> "Publish"
 
 module Test =
-    //nuget FSharpPlus
     //nuget Fake.IO.FileSystem
     //nuget Fake.DotNet.Testing.Expecto
 
@@ -249,20 +254,16 @@ module Test =
     open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
     open Fake.DotNet.Testing
-    open FSharpPlus
 
     Target.create "Test" <| fun _ ->
         !! "tests/**/*.fsproj"
-        |> toSeq
-        >>= fun projectPath ->
+        |> Seq.collect (fun projectPath ->
             let projectName = Path.GetFileNameWithoutExtension projectPath
-            !! (sprintf "tests/%s/bin/release/**/%s.dll" projectName projectName)
-            |> toSeq
+            !! (sprintf "tests/%s/bin/release/**/%s.dll" projectName projectName))
         |> Expecto.run id
     "Build" ==> "Test"
 
 module TestSourceLink =
-    //nuget FSharpPlus
     //nuget Fake.IO.FileSystem
     //nuget Fake.DotNet.Cli
 
@@ -270,18 +271,60 @@ module TestSourceLink =
     open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
     open Fake.DotNet
-    open FSharpPlus
 
     Target.create "TestSourceLink" <| fun _ ->
         !! "publish/*.nupkg"
-        |> flip Seq.iter <| fun p ->
+        |> Seq.iter (fun p ->
             DotNet.exec
                 id
                 "sourcelink"
                 (sprintf "test %s" p)
-            |> fun r -> if not r.OK then failwithf "Source link check for %s failed." p
+            |> fun r -> if not r.OK then failwithf "Source link check for %s failed." p)
 
     "Pack" ==> "TestSourceLink"
+
+module Run =
+    open Fake.Core
+    open System.Diagnostics
+
+    let projectToRun = ""
+
+    Target.create "Run" <| fun _ ->
+        Process.Start("dotnet", $"run -p {projectToRun}") |> ignore
+
+module BisectHelper =
+    //nuget Fake.DotNet.Cli
+
+    open Fake.Core
+    open Fake.DotNet
+    open System.Diagnostics
+
+    Target.create "BisectHelper" <| fun c ->
+        let project =
+            match c.Context.Arguments |> Seq.tryHead with
+            | None -> failwith "Need to specify the project to bisect"
+            | Some x -> x
+
+        let exitWith i =
+            printfn ""
+            printfn "Exiting with exit code %i" i
+            exit i
+
+        let rec readInput() : unit =
+            printfn "Enter g for good, b for bad, s for skip and a to abort"
+            match System.Console.ReadLine() with
+            | "g" -> exitWith 0
+            | "b" -> exitWith 1
+            | "s" -> exitWith 125
+            | "a" -> exitWith 128
+            | _ -> readInput()
+
+        try
+            DotNet.build id project
+            Process.Start("dotnet", $"run -p {project}").WaitForExit()
+        with _ -> printfn "Build failed"
+
+        readInput()
 
 module UploadArtifactsToGitHub =
     //nuget Fake.Api.GitHub
@@ -361,7 +404,7 @@ module Release =
 
     let pathToThisAssemblyFile =
         lazy
-        !! "src/*/obj/Release/**/ThisAssembly.GitInfo.g.fs"
+        !! "src/*/obj/Release/**/ThisAssembly.GitInfo.g.?s"
         |> Seq.head
 
     let (|Regex|_|) pattern input =
@@ -411,4 +454,4 @@ module Default =
     Target.create "Default" ignore
     [ "Build"; "Test" ] ==> "Default"
 
-    Target.runOrDefault "Default"
+    Target.runOrDefaultWithArguments "Default"
