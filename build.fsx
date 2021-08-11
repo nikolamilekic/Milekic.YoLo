@@ -1,7 +1,5 @@
 #load ".fake/build.fsx/intellisense.fsx"
 
-#nowarn "1182"
-
 module CustomTargetOperators =
     //nuget Fake.Core.Target
 
@@ -66,7 +64,7 @@ module Clean =
 
     Target.create "Clean" <| fun _ ->
         Seq.allPairs [|"src"; "tests"|] [|"bin"; "obj"|]
-        |> Seq.collect (fun (x, y) -> !!(sprintf "%s/**/%s" x y))
+        |> Seq.collect (fun (x, y) -> !! $"{x}/**/{y}")
         |> Seq.append [ "publish"; "testResults" ]
         |> Shell.deleteDirs
 
@@ -91,12 +89,7 @@ module Build =
         if AppVeyor.detect() then
             let finalVersion = finalVersion.Value
             let appVeyorVersion =
-                sprintf
-                    "%d.%d.%d.%s"
-                    finalVersion.Major
-                    finalVersion.Minor
-                    finalVersion.Patch
-                    AppVeyor.Environment.BuildNumber
+                $"{finalVersion.Major}.{finalVersion.Minor}.{finalVersion.Patch}.{AppVeyor.Environment.BuildNumber}"
 
             AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
 
@@ -156,40 +149,40 @@ module Publish =
 
     Target.create "Publish" <| fun _ ->
         let projectsToPublish = query {
-            for project in projectsToPublish do
-            let projectContents = File.readAsString project
-            let outputType =
-                match projectContents with
+            for _project in projectsToPublish do
+            let _projectContents = File.readAsString _project
+            let _outputType =
+                match _projectContents with
                 | Regex "<OutputType>(.+)<\/OutputType>" [ outputType ] ->
                     Some (outputType.ToLower())
                 | _ -> None
-            let projectType =
-                match projectContents with
+            let _projectType =
+                match _projectContents with
                 | Regex "<Project Sdk=\"(.+)\">" [ projectType ] ->
                     Some (projectType.ToLower())
                 | _ -> None
             where (
-                projectType = Some "microsoft.net.sdk.web" ||
-                outputType = Some "exe" ||
-                outputType = Some "winexe")
+                _projectType = Some "microsoft.net.sdk.web" ||
+                _outputType = Some "exe" ||
+                _outputType = Some "winexe")
 
-            let runtimesToTarget =
-                match projectContents with
+            let _runtimesToTarget =
+                match _projectContents with
                 | Regex "<RuntimeIdentifier.?>(.+)<\/RuntimeIdentifier" [ runtimes ] ->
                     runtimes |> String.splitStr ";"
                 | _ -> runtimesToTarget
 
-            for runtime in runtimesToTarget do
+            for _runtime in _runtimesToTarget do
 
-            let targetFrameworks =
-                match projectContents with
+            let _targetFrameworks =
+                match _projectContents with
                 | Regex "<TargetFramework.?>(.+)<\/TargetFramework" [ frameworks ] ->
                     frameworks |> String.splitStr ";"
                 | _ -> List.empty
 
-            for framework in targetFrameworks do
+            for framework in _targetFrameworks do
 
-            let customParemeters =
+            let customParameters =
                 match framework with
                 | x when x.StartsWith "netcoreapp3" ->
                     Some "-p:PublishSingleFile=true -p:PublishTrimmed=true"
@@ -197,16 +190,16 @@ module Publish =
                     Some "-p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true"
                 | _ -> None
 
-            select (project, runtime, framework, customParemeters)
+            select (_project, framework, _runtime, customParameters)
         }
 
-        for (project, runtime, framework, customParemeters) in projectsToPublish do
+        for project, framework, runtime, customParameters in projectsToPublish do
             project
             |> DotNet.publish (fun p ->
                 { p with
                     Framework = Some framework
                     Runtime = Some runtime
-                    Common = { p.Common with CustomParams = customParemeters } } )
+                    Common = { p.Common with CustomParams = customParameters } } )
 
             let sourceFolder =
                 seq {
@@ -240,7 +233,7 @@ module Publish =
 
             Zip.zip
                 targetFolder
-                (sprintf "publish/%s.zip" zipFileName)
+                $"publish/{zipFileName}.zip"
                 !! (targetFolder </> "**")
 
     [ "Clean"; "Build" ] ==> "Publish"
@@ -255,11 +248,13 @@ module Test =
     open Fake.IO.Globbing.Operators
     open Fake.DotNet.Testing
 
+    let testProjects = !!"tests/*/*.?sproj"
+
     Target.create "Test" <| fun _ ->
-        !! "tests/**/*.fsproj"
+        testProjects
         |> Seq.collect (fun projectPath ->
             let projectName = Path.GetFileNameWithoutExtension projectPath
-            !! (sprintf "tests/%s/bin/release/**/%s.dll" projectName projectName))
+            !! $"tests/{projectName}/bin/release/**/{projectName}.dll")
         |> Expecto.run id
     "Build" ==> "Test"
 
@@ -278,8 +273,8 @@ module TestSourceLink =
             DotNet.exec
                 id
                 "sourcelink"
-                (sprintf "test %s" p)
-            |> fun r -> if not r.OK then failwithf "Source link check for %s failed." p)
+                $"test {p}"
+            |> fun r -> if not r.OK then failwith $"Source link check for {p} failed.")
 
     "Pack" ==> "TestSourceLink"
 
@@ -287,10 +282,10 @@ module Run =
     open Fake.Core
     open System.Diagnostics
 
-    let projectToRun = ""
-
-    Target.create "Run" <| fun _ ->
-        Process.Start("dotnet", $"run -p {projectToRun}") |> ignore
+    Target.create "Run" <| fun c ->
+        match c.Context.Arguments |> Seq.tryHead with
+        | None -> failwith "Need to specify the project to run"
+        | Some x -> Process.Start("dotnet", $"run -p {x}") |> ignore
 
 module BisectHelper =
     //nuget Fake.DotNet.Cli
@@ -306,8 +301,7 @@ module BisectHelper =
             | Some x -> x
 
         let exitWith i =
-            printfn ""
-            printfn "Exiting with exit code %i" i
+            printfn $"Exiting with exit code {i}"
             exit i
 
         let rec readInput() : unit =
@@ -423,7 +417,7 @@ module Release =
     Target.create "Release" <| fun _ ->
         Git.CommandHelper.directRunGitCommandAndFail
             ""
-            (sprintf "push -f %s HEAD:release" gitHome.Value)
+            $"push -f {gitHome.Value} HEAD:release"
 
     [ "Clean"; "Build"; "Test" ] ==> "Release"
 
