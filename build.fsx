@@ -38,7 +38,7 @@ module FinalVersion =
 
     let finalVersion =
         lazy
-        !! "src/*/obj/Release/**/*.AssemblyInfo.fs"
+        !! "src/*/obj/Release/**/*.AssemblyInfo.?s"
         |> Seq.head
         |> getFinalVersionFromAssemblyInfo
         |> Option.defaultWith (fun _ -> failwith "Could not parse assembly version")
@@ -182,24 +182,18 @@ module Publish =
 
             for framework in _targetFrameworks do
 
-            let customParameters =
-                match framework with
-                | x when x.StartsWith "netcoreapp3" ->
-                    Some "-p:PublishSingleFile=true -p:PublishTrimmed=true"
-                | "net5.0" ->
-                    Some "-p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true"
-                | _ -> None
-
-            select (_project, framework, _runtime, customParameters)
+            select (_project, framework, _runtime)
         }
 
-        for project, framework, runtime, customParameters in projectsToPublish do
+        for project, framework, runtime in projectsToPublish do
+            let customParameters = "-p:PublishSingleFile=true -p:PublishTrimmed=true"
+
             project
             |> DotNet.publish (fun p ->
                 { p with
                     Framework = Some framework
                     Runtime = Some runtime
-                    Common = { p.Common with CustomParams = customParameters } } )
+                    Common = { p.Common with CustomParams = Some customParameters } } )
 
             let sourceFolder =
                 seq {
