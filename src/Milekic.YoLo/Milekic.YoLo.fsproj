@@ -21,12 +21,6 @@
     <Compile Include="Core.fs" />
     <Compile Include="Metadata.fs" />
     <Compile Include="Result.fs" />
-    <Compile Include="Eventually.fs" />
-    <Compile Include="Update.fs" />
-    <Compile Include="UpdateResult.fs" />
-    <Compile Include="Option.fs" />
-    <Compile Include="Validation.fs" />
-    <Compile Include="AutoOpen.fs" />
   </ItemGroup>
   <Import Project="SetVersion.targets" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
