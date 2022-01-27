@@ -1,6 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);SetVersion</GenerateNuspecDependsOn>
+    <GetPackageVersionDependsOn>$(GetPackageVersionDependsOn);SetVersion</GetPackageVersionDependsOn>
     <GitInfoReportImportance>high</GitInfoReportImportance>
     <GitIgnoreBranchVersion>True</GitIgnoreBranchVersion>
     <GitIgnoreTagVersion>True</GitIgnoreTagVersion>
