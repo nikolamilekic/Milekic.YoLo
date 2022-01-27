@@ -5,8 +5,14 @@
     <GitInfoReportImportance>high</GitInfoReportImportance>
     <GitIgnoreBranchVersion>True</GitIgnoreBranchVersion>
     <GitIgnoreTagVersion>True</GitIgnoreTagVersion>
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == '' and '$(PackageProjectUrl)' != ''">$(PackageProjectUrl).git</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
-  <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion">
+  <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion" Condition="'$(GitThisAssembly)' == true">
     <PropertyGroup>
       <SemanticVersion Condition="'$(GitSemVerLabel)' == ''">$(GitSemVerMajor).$(GitSemVerMinor).$(GitSemVerPatch)</SemanticVersion>
       <SemanticVersion Condition="'$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch)$(GitSemVerDashLabel).$(GitCommits)</SemanticVersion>
