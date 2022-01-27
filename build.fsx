@@ -114,6 +114,8 @@ module Pack =
             (fun p ->
                 { p with
                     OutputPath = Some (__SOURCE_DIRECTORY__ + "/publish")
+                    NoBuild = true
+                    NoRestore = true
                     MSBuildParams =
                         { p.MSBuildParams with
                             Properties =
