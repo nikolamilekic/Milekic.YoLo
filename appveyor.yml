@@ -13,6 +13,7 @@ branches:
 artifacts:
   - path: publish\*.zip
   - path: publish\*.nupkg
+  - path: publish\*.snupkg
 nuget:
   project_feed: true
 environment:

@@ -352,7 +352,10 @@ module UploadArtifactsToGitHub =
                         Body = releaseNotes.Value
                         Prerelease = (finalVersion.PreRelease <> None)
                         TargetCommitish = targetCommit })
-            |> GitHub.uploadFiles (!! "publish/*.nupkg" ++ "publish/*.zip")
+            |> GitHub.uploadFiles (
+                !! "publish/*.nupkg"
+                ++ "publish/*.snupkg"
+                ++ "publish/*.zip")
             |> GitHub.publishDraft
             |> Async.RunSynchronously
 
