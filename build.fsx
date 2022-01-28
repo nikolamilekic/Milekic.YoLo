@@ -70,28 +70,16 @@ module Clean =
 
 module Build =
     //nuget Fake.DotNet.Cli
-    //nuget Fake.BuildServer.AppVeyor
     //nuget Fake.IO.FileSystem
 
     open Fake.DotNet
     open Fake.Core
     open Fake.Core.TargetOperators
-    open Fake.BuildServer
     open Fake.IO.Globbing.Operators
-
-    open FinalVersion
 
     let projectToBuild = !! "*.sln" |> Seq.head
 
-    Target.create "Build" <| fun _ ->
-        DotNet.build id projectToBuild
-
-        if AppVeyor.detect() then
-            let finalVersion = finalVersion.Value
-            let appVeyorVersion =
-                $"{finalVersion.Major}.{finalVersion.Minor}.{finalVersion.Patch}.{AppVeyor.Environment.BuildNumber}"
-
-            AppVeyor.updateBuild (fun p -> { p with Version = appVeyorVersion })
+    Target.create "Build" <| fun _ -> DotNet.build id projectToBuild
 
     "Clean" ?=> "Build"
 
@@ -265,10 +253,7 @@ module TestSourceLink =
     Target.create "TestSourceLink" <| fun _ ->
         !! "publish/*.nupkg" ++ "publish/*.snupkg"
         |> Seq.iter (fun p ->
-            DotNet.exec
-                id
-                "sourcelink"
-                $"test {p}"
+            DotNet.exec id "sourcelink" $"test {p}"
             |> fun r -> if not r.OK then failwith $"Source link check for {p} failed.")
 
     "Pack" ==> "TestSourceLink"
@@ -318,7 +303,6 @@ module BisectHelper =
 module UploadArtifactsToGitHub =
     //nuget Fake.Api.GitHub
     //nuget Fake.IO.FileSystem
-    //nuget Fake.BuildServer.AppVeyor
     //nuget Fake.BuildServer.GitHubActions
 
     open System.IO
@@ -337,8 +321,7 @@ module UploadArtifactsToGitHub =
     Target.create "UploadArtifactsToGitHub" <| fun _ ->
         let finalVersion = finalVersion.Value
         let targetCommit =
-            if AppVeyor.detect() then AppVeyor.Environment.RepoCommit
-            elif GitHubActions.detect() then GitHubActions.Environment.Sha
+            if GitHubActions.detect() then GitHubActions.Environment.Sha
             else ""
         if targetCommit <> "" && finalVersion.PreRelease.IsNone then
             let token = Environment.environVarOrFail "GitHubToken"
@@ -363,7 +346,6 @@ module UploadArtifactsToGitHub =
 
 module UploadPackageToNuget =
     //nuget Fake.DotNet.Paket
-    //nuget Fake.BuildServer.AppVeyor
     //nuget Fake.BuildServer.GitHubActions
 
     open Fake.Core
@@ -374,8 +356,7 @@ module UploadPackageToNuget =
     open CustomTargetOperators
 
     Target.create "UploadPackageToNuget" <| fun _ ->
-        if (AppVeyor.detect() || GitHubActions.detect()) &&
-            finalVersion.Value.PreRelease.IsNone then
+        if GitHubActions.detect() && finalVersion.Value.PreRelease.IsNone then
             Paket.push <| fun p ->
                 { p with
                     ToolType = ToolType.CreateLocalTool()
@@ -418,14 +399,6 @@ module Release =
             $"push -f {gitHome.Value} HEAD:release"
 
     [ "Clean"; "Build"; "Test" ] ==> "Release"
-
-module AppVeyor =
-    open Fake.Core
-
-    open CustomTargetOperators
-
-    Target.create "AppVeyor" ignore
-    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "AppVeyor"
 
 module GitHubActions =
     open Fake.Core

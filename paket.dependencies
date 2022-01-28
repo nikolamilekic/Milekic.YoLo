@@ -16,7 +16,6 @@ group Build
 
     nuget FSharp.Core
     nuget Fake.Api.GitHub
-    nuget Fake.BuildServer.AppVeyor
     nuget Fake.BuildServer.GitHubActions
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Target
