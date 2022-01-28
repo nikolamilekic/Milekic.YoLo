@@ -27,6 +27,10 @@
       <PackageVersion>$(SemanticVersion)</PackageVersion>
     </PropertyGroup>
 
+    <ItemGroup>
+      <AssemblyMetadata Include="ReleaseDate" Value="$(GitCommitDate)" />
+    </ItemGroup>
+
     <Message Importance="high" Text="Semantic Version: $(SemanticVersion)"/>
   </Target>
 </Project>
