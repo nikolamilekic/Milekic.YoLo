@@ -263,7 +263,7 @@ module TestSourceLink =
     open Fake.DotNet
 
     Target.create "TestSourceLink" <| fun _ ->
-        !! "publish/*.nupkg"
+        !! "publish/*.nupkg" ++ "publish/*.snupkg"
         |> Seq.iter (fun p ->
             DotNet.exec
                 id
