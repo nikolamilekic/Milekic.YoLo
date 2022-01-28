@@ -110,7 +110,7 @@ module Pack =
                                 newBuildProperties @ p.MSBuildParams.Properties }})
             projectToPack
 
-    [ "Clean"; "Build" ] ==> "Pack"
+    [ "Build" ] ==> "Pack"
 
 module Publish =
     //nuget Fake.DotNet.Cli
@@ -406,10 +406,10 @@ module GitHubActions =
     open CustomTargetOperators
 
     Target.create "BuildAction" ignore
-    [ "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
+    [ "Clean"; "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
 
     Target.create "ReleaseAction" ignore
-    [ "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "ReleaseAction"
+    [ "Clean"; "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "ReleaseAction"
 
 module Default =
     open Fake.Core
