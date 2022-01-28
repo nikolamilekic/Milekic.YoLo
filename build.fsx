@@ -79,6 +79,26 @@ module Build =
 
     "Clean" ?=> "Build"
 
+module Test =
+    //nuget Fake.IO.FileSystem
+    //nuget Fake.DotNet.Testing.Expecto
+
+    open System.IO
+    open Fake.Core
+    open Fake.Core.TargetOperators
+    open Fake.IO.Globbing.Operators
+    open Fake.DotNet.Testing
+
+    let testProjects = !!"tests/*/*.?sproj"
+
+    Target.create "Test" <| fun _ ->
+        testProjects
+        |> Seq.collect (fun projectPath ->
+            let projectName = Path.GetFileNameWithoutExtension projectPath
+            !! $"tests/{projectName}/bin/release/**/{projectName}.dll")
+        |> Expecto.run id
+    "Build" ==> "Test"
+
 module Pack =
     //nuget Fake.DotNet.Cli
     //nuget Fake.IO.FileSystem
@@ -106,7 +126,7 @@ module Pack =
                                 newBuildProperties @ p.MSBuildParams.Properties }})
             projectToPack
 
-    [ "Build" ] ==> "Pack"
+    [ "Build"; "Test" ] ==> "Pack"
 
 module Publish =
     //nuget Fake.DotNet.Cli
@@ -212,27 +232,7 @@ module Publish =
                 $"publish/{zipFileName}.zip"
                 !! (targetFolder </> "**")
 
-    [ "Clean"; "Build" ] ==> "Publish"
-
-module Test =
-    //nuget Fake.IO.FileSystem
-    //nuget Fake.DotNet.Testing.Expecto
-
-    open System.IO
-    open Fake.Core
-    open Fake.Core.TargetOperators
-    open Fake.IO.Globbing.Operators
-    open Fake.DotNet.Testing
-
-    let testProjects = !!"tests/*/*.?sproj"
-
-    Target.create "Test" <| fun _ ->
-        testProjects
-        |> Seq.collect (fun projectPath ->
-            let projectName = Path.GetFileNameWithoutExtension projectPath
-            !! $"tests/{projectName}/bin/release/**/{projectName}.dll")
-        |> Expecto.run id
-    "Build" ==> "Test"
+    [ "Clean"; "Build"; "Test" ] ==> "Publish"
 
 module TestSourceLink =
     //nuget Fake.IO.FileSystem
