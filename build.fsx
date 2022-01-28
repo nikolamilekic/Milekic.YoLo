@@ -11,16 +11,12 @@ module CustomTargetOperators =
 module FinalVersion =
     //nuget Fake.IO.FileSystem
     //nuget Fake.Core.SemVer
+    //nuget Milekic.YoLo
 
-    open System.Text.RegularExpressions
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.Core
-
-    let (|Regex|_|) pattern input =
-        let m = Regex.Match(input, pattern)
-        if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
-        else None
+    open Milekic.YoLo
 
     let getFinalVersionFromAssemblyInfo x =
         match File.readAsString x with
@@ -116,6 +112,7 @@ module Publish =
     //nuget Fake.DotNet.Cli
     //nuget Fake.IO.FileSystem
     //nuget Fake.IO.Zip
+    //nuget Milekic.YoLo
 
     open System.IO
     open System.Text.RegularExpressions
@@ -124,14 +121,10 @@ module Publish =
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.IO.FileSystemOperators
+    open Milekic.YoLo
 
     open FinalVersion
     open CustomTargetOperators
-
-    let (|Regex|_|) pattern input =
-        let m = Regex.Match(input, pattern)
-        if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
-        else None
 
     let projectsToPublish = !!"src/*/*.?sproj"
     let runtimesToTarget = [ "osx-x64"; "win-x64"; "linux-arm"; "linux-x64" ]
@@ -366,12 +359,14 @@ module UploadPackageToNuget =
 
 module Release =
     //nuget Fake.Tools.Git
+    //nuget Milekic.YoLo
 
     open System.Text.RegularExpressions
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.Core
     open Fake.Tools
+    open Milekic.YoLo
 
     open CustomTargetOperators
 
@@ -379,11 +374,6 @@ module Release =
         lazy
         !! "src/*/obj/Release/**/ThisAssembly.GitInfo.g.?s"
         |> Seq.head
-
-    let (|Regex|_|) pattern input =
-        let m = Regex.Match(input, pattern)
-        if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
-        else None
 
     let gitHome =
         lazy

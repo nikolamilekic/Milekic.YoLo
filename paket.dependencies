@@ -15,6 +15,7 @@ group Build
     framework: netstandard2.0, net60
 
     nuget FSharp.Core
+
     nuget Fake.Api.GitHub
     nuget Fake.BuildServer.GitHubActions
     nuget Fake.Core.ReleaseNotes
@@ -25,3 +26,5 @@ group Build
     nuget Fake.IO.FileSystem
     nuget Fake.IO.Zip
     nuget Fake.Tools.Git
+
+    nuget Milekic.YoLo
