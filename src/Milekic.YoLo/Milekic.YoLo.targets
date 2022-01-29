@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <AssemblyMetadata Include="ReleaseDate" Value="$(GitCommitDate)" />
+      <InternalsVisibleTo Include="$(Product).Tests" />
     </ItemGroup>
 
     <Message Importance="high" Text="Semantic Version: $(SemanticVersion)"/>
