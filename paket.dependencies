@@ -17,12 +17,13 @@ group Build
     nuget FSharp.Core
 
     nuget Fake.Api.GitHub
+    nuget Octokit = 0.48 // Later versions lead to MissingMethodExceptions
     nuget Fake.BuildServer.GitHubActions
     nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.SemVer
     nuget Fake.Core.Target
     nuget Fake.DotNet.Cli
     nuget Fake.DotNet.Paket
-    nuget Fake.DotNet.Testing.Expecto
     nuget Fake.IO.FileSystem
     nuget Fake.IO.Zip
     nuget Fake.Tools.Git
