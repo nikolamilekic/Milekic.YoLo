@@ -1,12 +1,10 @@
 #load ".fake/build.fsx/intellisense.fsx"
 
-module CustomTargetOperators =
-    //nuget Fake.Core.Target
+//nuget Fake.Core.Target
+open Fake.Core.TargetOperators
 
-    open Fake.Core.TargetOperators
-
-    let (==>) xs y = xs |> Seq.iter (fun x -> x ==> y |> ignore)
-    let (?=>) xs y = xs |> Seq.iter (fun x -> x ?=> y |> ignore)
+let (==>) xs y = xs |> Seq.iter (fun x -> x ==> y |> ignore)
+let (?=>) xs y = xs |> Seq.iter (fun x -> x ?=> y |> ignore)
 
 module FinalVersion =
     //nuget Fake.IO.FileSystem
@@ -89,8 +87,6 @@ module Test =
     open Fake.DotNet
     open Fake.IO.Globbing.Operators
 
-    open CustomTargetOperators
-
     let testProjects = !!"tests/*/*.?sproj"
 
     Target.create "Test" <| fun _ ->
@@ -139,7 +135,6 @@ module Pack =
     open Fake.Core
     open Fake.IO.Globbing.Operators
 
-    open CustomTargetOperators
     open ReleaseNotesParsing
 
     let projectToPack = !! "*.sln" |> Seq.head
@@ -176,7 +171,6 @@ module Publish =
     open Milekic.YoLo
 
     open FinalVersion
-    open CustomTargetOperators
 
     let projectsToPublish = !!"src/*/*.?sproj"
     let runtimesToTarget = [ "osx-x64"; "win-x64"; "linux-arm"; "linux-x64" ]
@@ -336,7 +330,6 @@ module UploadArtifactsToGitHub =
     open Fake.IO.Globbing.Operators
     open Fake.BuildServer
 
-    open CustomTargetOperators
     open FinalVersion
     open ReleaseNotesParsing
 
@@ -378,7 +371,6 @@ module UploadPackageToNuget =
     open Fake.BuildServer
 
     open FinalVersion
-    open CustomTargetOperators
 
     Target.create "UploadPackageToNuget" <| fun _ ->
         if GitHubActions.detect() && finalVersion.Value.PreRelease.IsNone then
@@ -399,8 +391,6 @@ module Release =
     open Fake.Core
     open Fake.Tools
     open Milekic.YoLo
-
-    open CustomTargetOperators
 
     let pathToThisAssemblyFile =
         lazy
@@ -425,8 +415,6 @@ module Release =
 module GitHubActions =
     open Fake.Core
 
-    open CustomTargetOperators
-
     Target.create "BuildAction" ignore
     [ "Clean"; "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
 
@@ -435,8 +423,6 @@ module GitHubActions =
 
 module Default =
     open Fake.Core
-
-    open CustomTargetOperators
 
     Target.create "Default" ignore
     [ "Build"; "Test" ] ==> "Default"
