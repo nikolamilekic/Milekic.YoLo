@@ -10,14 +10,14 @@ Background:
 Scenario: Inject in 8 different flavours
     When the user runs inject with the following text
     """
-    {{ connect://Vault 1/Item 1/username }}
-    {{ connect://aaa/Item 1/username }}
-    {{ connect://Vault 1/bbb/username }}
-    {{ connect://aaa/bbb/username }}
-    {{ connect://Vault 1/Item 1/password }}
-    {{ connect://aaa/Item 1/password }}
-    {{ connect://Vault 1/bbb/password }}
-    {{ connect://aaa/bbb/password }}
+    {{ op://Vault 1/Item 1/username }}
+    {{ op://aaa/Item 1/username }}
+    {{ op://Vault 1/bbb/username }}
+    {{ op://aaa/bbb/username }}
+    {{ op://Vault 1/Item 1/password }}
+    {{ op://aaa/Item 1/password }}
+    {{ op://Vault 1/bbb/password }}
+    {{ op://aaa/bbb/password }}
     """
     Then the result should be
     """

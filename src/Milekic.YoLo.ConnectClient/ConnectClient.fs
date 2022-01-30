@@ -20,8 +20,8 @@ let inject (client : ConnectClient) template =
 
     let rec inner (template : string) : Async<Result<string, InjectError>> = async {
         match template with
-        | Regex "{{ connect://(.+)/(.+)/(.+) }}" [ vault; item; field ] ->
-            let replacement = "{{ " + $"connect://{vault}/{item}/{field}" + " }}"
+        | Regex "{{ op://(.+)/(.+)/(.+) }}" [ vault; item; field ] ->
+            let replacement = "{{ " + $"op://{vault}/{item}/{field}" + " }}"
 
             let getField (vaultId : VaultId) (itemId : ItemId) = async {
                 match! client.GetItem(vaultId, itemId) with
