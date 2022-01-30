@@ -11,6 +11,16 @@ nuget Microsoft.SourceLink.GitHub copy_local: true
 nuget Fs1PasswordConnect
 nuget FSharpPlus
 
+//Testing
+nuget Unquote
+nuget Microsoft.NET.Test.Sdk
+nuget SpecFlow.Plus.LivingDocPlugin
+nuget SpecFlow
+nuget SpecFlow.xUnit
+nuget xunit
+nuget xunit.runner.visualstudio
+nuget YoloDev.Expecto.TestSdk
+
 // [ FAKE GROUP ]
 group Build
     storage none

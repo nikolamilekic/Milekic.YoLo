@@ -1,0 +1,6 @@
+Microsoft.NET.Test.Sdk
+SpecFlow.Plus.LivingDocPlugin
+SpecFlow.xUnit
+xunit
+xunit.runner.visualstudio
+
