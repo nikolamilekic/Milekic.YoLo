@@ -383,6 +383,7 @@ module UploadPackageToNuget =
                     WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
 
     [ "Pack"; "Test"; "TestSourceLink" ] ==> "UploadPackageToNuget"
+    [ "UploadArtifactsToGitHub" ] ?=> "UploadPackageToNuget"
 
 module Release =
     //nuget Fake.Tools.Git
