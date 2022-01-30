@@ -1,15 +1,11 @@
 storage none
-source https://www.nuget.org/api/v2
-source "../Fs1PasswordConnect/publish"
-source "./publish"
+source https://api.nuget.org/v3/index.json
 
 framework: auto-detect
 
 nuget FSharp.Core >= 6.0 lowest_matching: true
 nuget GitInfo copy_local: true
 nuget Microsoft.SourceLink.GitHub copy_local: true
-nuget Fs1PasswordConnect
-nuget FSharpPlus
 
 //Testing
 nuget Unquote

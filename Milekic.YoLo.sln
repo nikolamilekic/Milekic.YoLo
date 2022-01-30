@@ -25,12 +25,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Milekic.YoLo.ConnectClient", "src\Milekic.YoLo.ConnectClient\Milekic.YoLo.ConnectClient.fsproj", "{5359CE21-5CFA-4D43-8988-F6768F83D292}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milekic.YoLo.Tests.SpecFlow", "tests\Milekic.YoLo.Tests.SpecFlow\Milekic.YoLo.Tests.SpecFlow.csproj", "{C454E1D2-FC2A-45FB-B463-82A086E23863}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Milekic.YoLo.Tests", "tests\Milekic.YoLo.Tests\Milekic.YoLo.Tests.fsproj", "{81EAC7CB-DC88-4254-88C0-CB4C2744CD51}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,17 +35,5 @@ Global
 		{7515B262-5782-4229-8525-D779F4D74963}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7515B262-5782-4229-8525-D779F4D74963}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7515B262-5782-4229-8525-D779F4D74963}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5359CE21-5CFA-4D43-8988-F6768F83D292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5359CE21-5CFA-4D43-8988-F6768F83D292}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5359CE21-5CFA-4D43-8988-F6768F83D292}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5359CE21-5CFA-4D43-8988-F6768F83D292}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C454E1D2-FC2A-45FB-B463-82A086E23863}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C454E1D2-FC2A-45FB-B463-82A086E23863}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C454E1D2-FC2A-45FB-B463-82A086E23863}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C454E1D2-FC2A-45FB-B463-82A086E23863}.Release|Any CPU.Build.0 = Release|Any CPU
-		{81EAC7CB-DC88-4254-88C0-CB4C2744CD51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{81EAC7CB-DC88-4254-88C0-CB4C2744CD51}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{81EAC7CB-DC88-4254-88C0-CB4C2744CD51}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{81EAC7CB-DC88-4254-88C0-CB4C2744CD51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
