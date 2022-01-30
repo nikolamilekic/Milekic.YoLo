@@ -68,14 +68,16 @@ module Build =
 
     open Fake.DotNet
     open Fake.Core
-    open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
 
     let projectToBuild = !! "*.sln" |> Seq.head
 
     Target.create "Build" <| fun _ -> DotNet.build id projectToBuild
 
-    "Clean" ?=> "Build"
+    [ "Clean" ] ?=> "Build"
+
+    Target.create "Rebuild" ignore
+    [ "Clean"; "Build" ] ==> "Rebuild"
 
 module Test =
     //nuget Fake.DotNet.Cli
@@ -155,6 +157,9 @@ module Pack =
 
     [ "Build"; "Test" ] ==> "Pack"
 
+    Target.create "Repack" ignore
+    [ "Clean"; "Pack" ] ==> "Repack"
+
 module Publish =
     //nuget Fake.DotNet.Cli
     //nuget Fake.IO.FileSystem
@@ -162,7 +167,6 @@ module Publish =
     //nuget Milekic.YoLo
 
     open System.IO
-    open System.Text.RegularExpressions
     open Fake.DotNet
     open Fake.Core
     open Fake.IO
@@ -265,7 +269,6 @@ module TestSourceLink =
     //nuget Fake.DotNet.Cli
 
     open Fake.Core
-    open Fake.Core.TargetOperators
     open Fake.IO.Globbing.Operators
     open Fake.DotNet
 
@@ -275,7 +278,7 @@ module TestSourceLink =
             DotNet.exec id "sourcelink" $"test {p}"
             |> fun r -> if not r.OK then failwith $"Source link check for {p} failed.")
 
-    "Pack" ==> "TestSourceLink"
+    [ "Pack" ] ==> "TestSourceLink"
 
 module Run =
     open Fake.Core
@@ -385,7 +388,6 @@ module Release =
     //nuget Fake.Tools.Git
     //nuget Milekic.YoLo
 
-    open System.Text.RegularExpressions
     open Fake.IO
     open Fake.IO.Globbing.Operators
     open Fake.Core
