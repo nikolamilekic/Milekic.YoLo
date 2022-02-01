@@ -373,10 +373,8 @@ module UploadPackageToNuget =
     open Fake.DotNet
     open Fake.BuildServer
 
-    open FinalVersion
-
     Target.create "UploadPackageToNuget" <| fun _ ->
-        if GitHubActions.detect() && finalVersion.Value.PreRelease.IsNone then
+        if GitHubActions.detect() then
             Paket.push <| fun p ->
                 { p with
                     ToolType = ToolType.CreateLocalTool()
@@ -413,7 +411,7 @@ module Release =
             ""
             $"push -f {gitHome.Value} HEAD:release"
 
-    [ "Clean"; "Build"; "Test" ] ==> "Release"
+    [ "Clean"; "Build"; "Test"; "TestSourceLink" ] ==> "Release"
 
 module GitHubActions =
     open Fake.Core

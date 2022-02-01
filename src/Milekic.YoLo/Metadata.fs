@@ -21,6 +21,8 @@ let entryAssemblyReleaseDate =
     entryAssembly.Value.GetCustomAttributes<AssemblyMetadataAttribute>()
     |> Seq.tryFind(fun attribute -> attribute.Key = "ReleaseDate")
 
+/// Returns the entry assembly's product together with the version and release date in the following format:
+/// {PRODUCT} Version: {VERSION} ({RELEASE DATE})
 let productDescription =
     lazy
     entryAssemblyProduct.Value

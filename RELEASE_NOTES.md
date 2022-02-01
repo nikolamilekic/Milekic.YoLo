@@ -1,3 +1,8 @@
+## New in 3.0 (Unreleased)
+* Switch to .NET 6
+* Metadata is now automatically added to any referencing assemblies (if they also depend on GitInfo)
+* Symbols are now published as a separate nuget package (snupkg)
+
 ## New in 2.2 (Released 2020/12/13)
 * Now targeting .NET 5
 
