@@ -273,12 +273,12 @@ module TestSourceLink =
     open Fake.DotNet
 
     Target.create "TestSourceLink" <| fun _ ->
-        !! "publish/*.snupkg"
+        !! "src/**/bin/Release/**/*.pdb"
         |> Seq.iter (fun p ->
             DotNet.exec id "sourcelink" $"test {p}"
             |> fun r -> if not r.OK then failwith $"Source link check for {p} failed.")
 
-    [ "Pack" ] ==> "TestSourceLink"
+    [ "Clean"; "Pack" ] ==> "TestSourceLink"
 
 module Run =
     open Fake.Core
