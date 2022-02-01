@@ -8,8 +8,6 @@
     <RepositoryUrl Condition="'$(RepositoryUrl)' == '' and '$(PackageProjectUrl)' != ''">$(PackageProjectUrl).git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <Target Name="SetVersion" DependsOnTargets="GitVersion" AfterTargets="GitVersion" Condition="'$(GitThisAssembly)' == true">
