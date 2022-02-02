@@ -273,7 +273,7 @@ module TestSourceLink =
     open Fake.DotNet
 
     Target.create "TestSourceLink" <| fun _ ->
-        !! "src/**/bin/Release/**/*.pdb"
+        !! "publish/*.nupkg"
         |> Seq.iter (fun p ->
             DotNet.exec id "sourcelink" $"test {p}"
             |> fun r -> if not r.OK then failwith $"Source link check for {p} failed.")
