@@ -8,6 +8,9 @@
     <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Milekic.YoLo.props" Pack="true" PackagePath="./build/">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Milekic.YoLo.targets" Pack="true" PackagePath="./build/">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
