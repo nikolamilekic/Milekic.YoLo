@@ -6,6 +6,7 @@
     <Copyright>Copyright © $([System.DateTime]::Now.Year) Nikola Milekic</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Milekic.YoLo.props" Pack="true" PackagePath="./build/">
