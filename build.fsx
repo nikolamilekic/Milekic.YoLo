@@ -349,7 +349,7 @@ module UploadArtifactsToGitHub =
             if GitHubActions.detect() then GitHubActions.Environment.Sha
             else ""
         if targetCommit <> "" then
-            let token = Environment.environVarOrFail "GitHubToken"
+            let token = Environment.environVarOrFail "GITHUB_TOKEN"
             GitHub.createClientWithToken token
             |> GitHub.createRelease
                 gitOwner
