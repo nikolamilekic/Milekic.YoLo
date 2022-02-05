@@ -476,7 +476,12 @@ module GitHubActions =
     [ "Clean"; "Build"; "Test"; "TestSourceLink" ] ==> "BuildAction"
 
     Target.create "ReleaseAction" ignore
-    [ "Clean"; "UploadArtifactsToGitHub"; "UploadPackageToNuget" ] ==> "ReleaseAction"
+    [
+        "Clean"
+        "UploadArtifactsToGitHub"
+        "UploadPackageToNuget"
+        "UploadPackageWithSleet"
+    ] ==> "ReleaseAction"
 
 module Default =
     open Fake.Core
