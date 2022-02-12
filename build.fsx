@@ -384,19 +384,21 @@ module UploadPackageToNuget =
         if GitHubActions.detect() = false || finalVersion.Value.PreRelease.IsSome then () else
 
         let apiKey =
-            let original = Environment.environVarOrFail "NUGET_KEY"
-            match ConnectClient.client with
-            | Ok client ->
-                match client.Inject original |> Async.RunSynchronously with
-                | Error e -> failwith $"Could not update Sleet config due to the following Connect error: {e.ToString()}."
-                | Ok t -> t
-            | Error () -> original
+            match Environment.environVarOrNone "NUGET_KEY", ConnectClient.client with
+            | Some key, Ok client ->
+                match client.Inject key |> Async.RunSynchronously with
+                | Error e -> failwith $"Could not retrieve nuget key due to the following Connect error: {e.ToString()}."
+                | Ok key -> Some key
+            | _ -> None
 
-        Paket.push <| fun p ->
-            { p with
-                ApiKey = apiKey
-                ToolType = ToolType.CreateLocalTool()
-                WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
+        match apiKey with
+        | Some apiKey ->
+            Paket.push <| fun p -> {
+                p with
+                    ApiKey = apiKey
+                    ToolType = ToolType.CreateLocalTool()
+                    WorkingDir = __SOURCE_DIRECTORY__ + "/publish" }
+        | None -> ()
 
     [ "Pack"; "Test"; "TestSourceLink" ] ==> "UploadPackageToNuget"
     [ "UploadArtifactsToGitHub" ] ?=> "UploadPackageToNuget"
@@ -419,16 +421,13 @@ module UploadPackageWithSleet =
 
         let configFile =
             match Environment.environVarOrNone "SLEET_CONFIG", ConnectClient.client with
-            | Some path, Ok client ->
-                let initialConfig = File.ReadAllText path
-                match client.Inject initialConfig |> Async.RunSynchronously with
-                | Error e -> failwith $"Could not update Sleet config due to the following Connect error: {e.ToString()}."
-                | Ok updatedConfig when updatedConfig = initialConfig -> Some path
+            | Some config, Ok client ->
+                match client.Inject config |> Async.RunSynchronously with
+                | Error e -> failwith $"Could not retrieve Sleet config due to the following Connect error: {e.ToString()}."
                 | Ok updatedConfig ->
                     let updatedConfigPath = __SOURCE_DIRECTORY__ + "/Sleet.json"
                     File.WriteAllText(updatedConfigPath, updatedConfig)
                     Some updatedConfigPath
-            | Some path, Error () -> Some path
             | _ -> None
 
         match configFile with
