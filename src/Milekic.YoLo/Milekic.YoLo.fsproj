@@ -9,12 +9,20 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="Milekic.YoLo.props" Pack="true" PackagePath="./build/">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Milekic.YoLo.targets" Pack="true" PackagePath="./build/">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Milekic.YoLo.props" Pack="true" PackagePath="./build/" />
+    <None Include="Milekic.YoLo.targets" Pack="true" PackagePath="./build/" />
+    <None Include="..\..\.github\workflows\Build.yml" Pack="true" PackagePath="./BuildScript/github/workflows" />
+    <None Include="..\..\.github\workflows\Release.yml" Pack="true" PackagePath="./BuildScript/github/workflows" />
+    <None Include="..\..\.config\dotnet-tools.json" Pack="true" PackagePath="./BuildScript/config" />
+    <None Include="..\..\build.fsx" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\BisectHelper.cmd" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\build.cmd" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\Run.cmd" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\BisectHelper.sh" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\build.sh" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\Run.sh" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\paket.dependencies" Pack="true" PackagePath="./BuildScript" />
+    <None Include="..\..\paket.lock" Pack="true" PackagePath="./BuildScript" />
     <None Include="paket.references" />
     <Compile Include="Core.fs" />
     <Compile Include="Metadata.fs" />
