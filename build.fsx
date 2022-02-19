@@ -1,3 +1,23 @@
+#r "paket:
+source https://api.nuget.org/v3/index.json
+source https://nuget.nikolamilekic.com/index.json
+
+nuget FSharp.Core
+
+nuget Fake.Api.GitHub
+nuget Octokit
+nuget Fake.BuildServer.GitHubActions
+nuget Fake.Core.ReleaseNotes
+nuget Fake.Core.SemVer
+nuget Fake.Core.Target
+nuget Fake.DotNet.Cli
+nuget Fake.DotNet.Paket
+nuget Fake.IO.FileSystem
+nuget Fake.IO.Zip
+nuget Fake.Tools.Git
+
+nuget Milekic.YoLo prerelease
+nuget Fs1PasswordConnect //"
 #load ".fake/build.fsx/intellisense.fsx"
 
 //nuget Fake.Core.Target
