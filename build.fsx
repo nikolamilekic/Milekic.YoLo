@@ -304,15 +304,6 @@ module TestSourceLink =
 
     [ "Clean"; "Pack" ] ==> "TestSourceLink"
 
-module Run =
-    open Fake.Core
-    open System.Diagnostics
-
-    Target.create "Run" <| fun c ->
-        match c.Context.Arguments |> Seq.tryHead with
-        | None -> failwith "Need to specify the project to run"
-        | Some x -> Process.Start("dotnet", $"run -p {x}") |> ignore
-
 module BisectHelper =
     //nuget Fake.DotNet.Cli
 

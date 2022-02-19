@@ -18,10 +18,8 @@
     <None Include="..\..\build.fsx.lock" Pack="true" PackagePath="./BuildScript" />
     <None Include="..\..\BisectHelper.cmd" Pack="true" PackagePath="./BuildScript" />
     <None Include="..\..\build.cmd" Pack="true" PackagePath="./BuildScript" />
-    <None Include="..\..\Run.cmd" Pack="true" PackagePath="./BuildScript" />
     <None Include="..\..\BisectHelper.sh" Pack="true" PackagePath="./BuildScript" />
     <None Include="..\..\build.sh" Pack="true" PackagePath="./BuildScript" />
-    <None Include="..\..\Run.sh" Pack="true" PackagePath="./BuildScript" />
     <None Include="paket.references" />
     <Compile Include="Core.fs" />
     <Compile Include="Metadata.fs" />
