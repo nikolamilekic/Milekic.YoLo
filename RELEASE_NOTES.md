@@ -1,4 +1,4 @@
-## New in 3.0 (Unreleased)
+## New in 3.0 (Released 2022/02/20)
 * Switch to .NET 6
 * Metadata is now automatically added to any referencing assemblies (if they also depend on GitInfo)
 * Symbols are now published as a separate nuget package (snupkg)
