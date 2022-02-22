@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -16,5 +16,3 @@ jobs:
       uses: actions/setup-dotnet@v1
     - name: Run Fake
       run: ./build.sh -t BuildAction
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

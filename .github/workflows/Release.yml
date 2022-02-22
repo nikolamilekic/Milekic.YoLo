@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -18,3 +18,7 @@ jobs:
       run: ./build.sh -t ReleaseAction
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
+        OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+        NUGET_KEY: {{ op://GitHub/Nuget Api/credential }}
+        SLEET_CONFIG: {{ op://GitHub/Sleet Config/Sleet.json }}
