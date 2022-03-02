@@ -10,9 +10,6 @@ nuget Microsoft.SourceLink.GitHub copy_local: true
 //Testing
 nuget Unquote
 nuget Microsoft.NET.Test.Sdk
-nuget SpecFlow.Plus.LivingDocPlugin
-nuget SpecFlow
-nuget SpecFlow.xUnit
-nuget xunit
-nuget xunit.runner.visualstudio
 nuget YoloDev.Expecto.TestSdk
+nuget Expecto
+nuget Expecto.FsCheck
