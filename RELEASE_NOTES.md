@@ -1,3 +1,6 @@
+## New in 3.1 (Released 2022/03/02)
+* BaseConverter
+
 ## New in 3.0 (Released 2022/02/20)
 * Switch to .NET 6
 * Metadata is now automatically added to any referencing assemblies (if they also depend on GitInfo)
