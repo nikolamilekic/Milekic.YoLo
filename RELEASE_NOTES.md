@@ -1,3 +1,6 @@
+## New in 3.2 (Released 2022/03/11)
+* Targets expanded to include versioning properties for MacOS app bundles
+
 ## New in 3.1 (Released 2022/03/02)
 * BaseConverter
 

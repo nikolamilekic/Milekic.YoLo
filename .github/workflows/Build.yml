@@ -6,8 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
@@ -15,4 +14,6 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
     - name: Run Fake
-      run: ./build.cmd -t BuildAction
+      run: ./build.sh -t BuildAction
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

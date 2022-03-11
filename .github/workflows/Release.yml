@@ -6,8 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
@@ -15,10 +14,36 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
     - name: Run Fake
-      run: ./build.cmd -t ReleaseAction
+      run: ./build.sh -t ReleaseAction
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         OP_CONNECT_HOST: ${{ secrets.OP_CONNECT_HOST }}
         OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
         NUGET_KEY: '{{ op://GitHub/Nuget Api/credential }}'
         SLEET_CONFIG: '{{ op://GitHub/Sleet Config/Sleet.json }}'
+  #publish-windows:
+  #  needs: build
+  #  runs-on: windows-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #    with:
+  #      fetch-depth: 0
+  #  - name: Setup .NET
+  #    uses: actions/setup-dotnet@v1
+  #  - name: Run Fake
+  #    run: ./build.cmd -t PublishWindowsAction
+  #    env:
+  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #publish-macos:
+  #  needs: build
+  #  runs-on: macos-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #    with:
+  #      fetch-depth: 0
+  #  - name: Setup .NET
+  #    uses: actions/setup-dotnet@v1
+  #  - name: Run Fake
+  #    run: ./build.sh -t PublishMacOSAction
+  #    env:
+  #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

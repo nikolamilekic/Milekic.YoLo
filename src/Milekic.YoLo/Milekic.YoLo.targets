@@ -5,8 +5,8 @@
     <GitInfoReportImportance>high</GitInfoReportImportance>
     <GitIgnoreBranchVersion>True</GitIgnoreBranchVersion>
     <GitIgnoreTagVersion>True</GitIgnoreTagVersion>
+    <PublishRepositoryUrl Condition="'$(RepositoryUrl)' == '' and '$(PackageProjectUrl)' != ''">true</PublishRepositoryUrl>
     <RepositoryUrl Condition="'$(RepositoryUrl)' == '' and '$(PackageProjectUrl)' != ''">$(PackageProjectUrl).git</RepositoryUrl>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
@@ -24,6 +24,10 @@
       <InformationalVersion>$(SemanticVersion)+$(GitSha)</InformationalVersion>
 
       <PackageVersion>$(SemanticVersion)</PackageVersion>
+
+      <CFBundleVersion Condition="'$(CFBundleName)' != '' AND '$(GitSemVerLabel)' == ''">$(GitSemVerMajor).$(GitSemVerMinor).$(GitSemVerPatch)</CFBundleVersion>
+      <CFBundleVersion Condition="'$(CFBundleName)' != '' AND '$(GitSemVerLabel)' != ''">$(GitBaseVersionMajor).$(GitBaseVersionMinor).$(GitBaseVersionPatch)</CFBundleVersion>
+      <CFBundleShortVersionString Condition="'$(CFBundleName)' != ''">$(CFBundleVersion)</CFBundleShortVersionString>
     </PropertyGroup>
 
     <ItemGroup>
@@ -31,5 +35,7 @@
     </ItemGroup>
 
     <Message Importance="high" Text="Semantic Version: $(SemanticVersion)"/>
+    <Message Importance="high" Condition="'$(CFBundleName)' != ''" Text="CFBundleVersion: $(CFBundleVersion)"/>
+    <Message Importance="high" Condition="'$(CFBundleShortVersionString)' != ''" Text="CFBundleShortVersionString: $(CFBundleShortVersionString)"/>
   </Target>
 </Project>
