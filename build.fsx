@@ -301,10 +301,15 @@ module Publish =
                 }
                 |> String.concat "."
 
+            let filesToPublish =
+                !! (targetFolder </> "**")
+                -- "**/*.xml"
+                -- "**/*.pdb"
+
             Zip.zip
                 targetFolder
                 $"publish/{zipFileName}.zip"
-                !! (targetFolder </> "**")
+                filesToPublish
 
     Target.create "PublishWindows" <| fun _ -> publish [ "win-x64" ]
     Target.create "PublishMacOS" <| fun _ -> publish [ "osx-x64" ]
