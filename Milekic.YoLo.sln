@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Milekic.YoLo.Tests", "tests\Milekic.YoLo.Tests\Milekic.YoLo.Tests.fsproj", "{1B084B16-E905-42AF-89AB-67558B0814BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Milekic.YoLo.CSharp", "src\Milekic.YoLo.CSharp\Milekic.YoLo.CSharp.csproj", "{5390981E-0459-4DEA-A626-CD98466806F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,5 +41,9 @@ Global
 		{1B084B16-E905-42AF-89AB-67558B0814BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B084B16-E905-42AF-89AB-67558B0814BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B084B16-E905-42AF-89AB-67558B0814BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5390981E-0459-4DEA-A626-CD98466806F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5390981E-0459-4DEA-A626-CD98466806F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5390981E-0459-4DEA-A626-CD98466806F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5390981E-0459-4DEA-A626-CD98466806F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>Utilities</Description>
+    <Authors>Nikola Milekic</Authors>
+    <Copyright>Copyright © $([System.DateTime]::Now.Year) Nikola Milekic</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nikolamilekic/Milekic.YoLo</PackageProjectUrl>
+    <IsPackable>true</IsPackable>
+    <RootNamespace>Milekic.YoLo</RootNamespace>
+  </PropertyGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>
