@@ -16,8 +16,7 @@ nuget Fake.IO.FileSystem
 nuget Fake.IO.Zip
 nuget Fake.Tools.Git
 
-nuget Milekic.YoLo
-nuget Fs1PasswordConnect //"
+nuget Milekic.YoLo //"
 #load ".fake/build.fsx/intellisense.fsx"
 
 //nuget Fake.Core.Target
@@ -68,10 +67,6 @@ module ReleaseNotesParsing =
         lazy
         (ReleaseNotes.load releaseNotesFile).Notes
         |> String.concat Environment.NewLine
-
-module ConnectClient =
-    open Fs1PasswordConnect
-    let client = ConnectClient.fromEnvironmentVariablesCached ()
 
 module Clean =
     //nuget Fake.IO.FileSystem
@@ -470,7 +465,6 @@ module UploadArtifactsToGitHub =
 module UploadPackageToNuget =
     //nuget Fake.DotNet.Paket
     //nuget Fake.BuildServer.GitHubActions
-    //nuget Fs1PasswordConnect
 
     open Fake.Core
     open Fake.DotNet
@@ -481,15 +475,7 @@ module UploadPackageToNuget =
     Target.create "UploadPackageToNuget" <| fun _ ->
         if GitHubActions.detect() = false || finalVersion.Value.PreRelease.IsSome then () else
 
-        let apiKey =
-            match Environment.environVarOrNone "NUGET_KEY", ConnectClient.client with
-            | Some key, Ok client ->
-                match client.Inject key |> Async.RunSynchronously with
-                | Error e -> failwith $"Could not retrieve nuget key due to the following Connect error: {e.ToString()}."
-                | Ok key -> Some key
-            | _ -> None
-
-        match apiKey with
+        match Environment.environVarOrNone("NUGET_KEY") with
         | Some apiKey ->
             Paket.push <| fun p -> {
                 p with
@@ -520,24 +506,11 @@ module UploadPackageWithSleet =
 
     Target.create "UploadPackageWithSleet" <| fun _ ->
         if (GitHubActions.detect() = false ||
-            Directory.Exists(publishDirectory) = false) then () else
+            Directory.Exists(publishDirectory) = false) ||
+            Environment.environVarOrNone "SLEET_FEED_TYPE" |> Option.isNone then () else
 
-        let configFile =
-            match Environment.environVarOrNone "SLEET_CONFIG", ConnectClient.client with
-            | Some config, Ok client ->
-                match client.Inject config |> Async.RunSynchronously with
-                | Error e -> failwith $"Could not retrieve Sleet config due to the following Connect error: {e.ToString()}."
-                | Ok updatedConfig ->
-                    let updatedConfigPath = __SOURCE_DIRECTORY__ + "/Sleet.json"
-                    File.WriteAllText(updatedConfigPath, updatedConfig)
-                    Some updatedConfigPath
-            | _ -> None
-
-        match configFile with
-        | Some path ->
-            DotNet.exec id "sleet" $"push {publishDirectory} -c {path}"
-            |> fun r -> if not r.OK then failwith $"Failed to push to Sleet. Errors: {r.Errors}"
-        | _ -> ()
+        DotNet.exec id "sleet" $"push {publishDirectory}"
+        |> fun r -> if not r.OK then failwith $"Failed to push to Sleet. Errors: {r.Errors}"
 
     [ "Pack"  ] ==> "UploadPackageWithSleet"
 

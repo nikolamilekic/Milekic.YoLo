@@ -1,3 +1,7 @@
+## New in 3.3 (Released 2022/09/09)
+* Build script: Switched to 1password/load-secrets-action
+* Build script: Xml and pdb files are now excluded from publish output
+
 ## New in 3.2 (Released 2022/03/11)
 * Targets expanded to include versioning properties for MacOS app bundles
 
