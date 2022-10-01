@@ -271,7 +271,7 @@ NUGET
     System.Windows.Extensions (6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= netcoreapp3.1))
       System.Drawing.Common (>= 6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= netcoreapp3.1))
   remote: https://nuget.nikolamilekic.com/index.json
-    Fs1PasswordConnect (2.0.0-dev.8)
+    Fs1PasswordConnect (2.0.0)
       Fleece.SystemTextJson (>= 0.10) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))
       FSharp.Core (>= 6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))
       FSharp.Data (>= 5.0.2) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))

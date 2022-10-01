@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		.github\workflows\Build.yml = .github\workflows\Build.yml
 		.github\workflows\Release.yml = .github\workflows\Release.yml
+		build.fsx.lock = build.fsx.lock
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Milekic.YoLo.Tests", "tests\Milekic.YoLo.Tests\Milekic.YoLo.Tests.fsproj", "{1B084B16-E905-42AF-89AB-67558B0814BE}"
