@@ -4,6 +4,7 @@ source https://nuget.nikolamilekic.com/index.json
 
 nuget FSharp.Core
 
+nuget FSharpPlus
 nuget Fake.Api.GitHub
 nuget Octokit
 nuget Fake.BuildServer.GitHubActions
@@ -16,7 +17,8 @@ nuget Fake.IO.FileSystem
 nuget Fake.IO.Zip
 nuget Fake.Tools.Git
 
-nuget Milekic.YoLo //"
+nuget Milekic.YoLo
+nuget Fs1PasswordConnect prerelease //"
 #load ".fake/build.fsx/intellisense.fsx"
 
 //nuget Fake.Core.Target
@@ -24,6 +26,44 @@ open Fake.Core.TargetOperators
 
 let (==>) xs y = xs |> Seq.iter (fun x -> x ==> y |> ignore)
 let (?=>) xs y = xs |> Seq.iter (fun x -> x ?=> y |> ignore)
+
+module Connect =
+    //nuget Milekic.YoLo
+    //nuget FSharpPlus
+    //nuget Fs1PasswordConnect
+    //nuget Fake.BuildServer.GitHubActions
+
+    open Fs1PasswordConnect
+    open FSharpPlus
+    open Milekic.YoLo
+    open Fake.BuildServer
+
+    monad.strict {
+        let! client =
+            ConnectClient.fromEnvironmentVariables()
+            |> Result.mapError (fun _ -> printfn "Connect client not configured")
+
+        printfn "Injecting secrets into environment variables using Connect"
+
+        let ghActions = GitHubActions.detect ()
+        for u, r in client.InjectIntoEnvironmentVariables() |> Async.RunSynchronously do
+            match r with
+            | Ok (s : string) ->
+                printfn $"Updated environment variable {u}"
+                if ghActions then
+                    //See https://github.com/actions/toolkit/blob/4fbc5c941a57249b19562015edbd72add14be93d/packages/core/src/command.ts#L23
+                    let escaped =
+                        s
+                            .Replace("%", "%25")
+                            .Replace("\r", "%0D")
+                            .Replace("\n", "%0A")
+                    printfn $"::add-mask::{escaped}"
+            | Error e -> printfn $"Failed to update environment variable {u}: {e}"
+        printfn "Secret injection done"
+
+        return ()
+    }
+    |> ignore
 
 module FinalVersion =
     //nuget Fake.IO.FileSystem
@@ -494,7 +534,6 @@ module UploadPackageToNuget =
 
 module UploadPackageWithSleet =
     //nuget Fake.DotNet.Cli
-    //nuget Fs1PasswordConnect
     //nuget Fake.BuildServer.GitHubActions
 
     open Fake.Core
