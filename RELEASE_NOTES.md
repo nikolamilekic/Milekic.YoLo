@@ -1,3 +1,6 @@
+## New in 3.4 (Unreleased)
+* Go back to using Fs1PasswordConnect. The official action does not work on Windows.
+
 ## New in 3.3 (Released 2022/09/09)
 * Build script: Switched to 1password/load-secrets-action
 * Build script: Xml and pdb files are now excluded from publish output
