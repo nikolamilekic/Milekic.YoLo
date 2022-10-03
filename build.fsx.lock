@@ -179,7 +179,7 @@ NUGET
       System.Security.AccessControl (>= 5.0)
       System.Security.Principal.Windows (>= 5.0)
     Microsoft.Win32.SystemEvents (6.0.1) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= netcoreapp3.1))
-    Milekic.YoLo (3.3)
+    Milekic.YoLo (3.4)
       FSharp.Core (>= 6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))
     Mono.Posix.NETStandard (1.0)
     MSBuild.StructuredLogger (2.1.669)
@@ -271,7 +271,7 @@ NUGET
     System.Windows.Extensions (6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= netcoreapp3.1))
       System.Drawing.Common (>= 6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= netcoreapp3.1))
   remote: https://nuget.nikolamilekic.com/index.json
-    Fs1PasswordConnect (2.0.0)
+    Fs1PasswordConnect (2.0.2)
       Fleece.SystemTextJson (>= 0.10) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))
       FSharp.Core (>= 6.0) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))
       FSharp.Data (>= 5.0.2) - restriction: || (== net6.0) (&& (== netstandard2.0) (>= net6.0))

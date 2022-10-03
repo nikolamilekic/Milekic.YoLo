@@ -18,7 +18,7 @@ nuget Fake.IO.Zip
 nuget Fake.Tools.Git
 
 nuget Milekic.YoLo
-nuget Fs1PasswordConnect prerelease //"
+nuget Fs1PasswordConnect //"
 #load ".fake/build.fsx/intellisense.fsx"
 
 //nuget Fake.Core.Target
