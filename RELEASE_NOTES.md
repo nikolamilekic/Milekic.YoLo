@@ -1,4 +1,4 @@
-## New in 3.4 (Unreleased)
+## New in 3.4 (Released 2022/10/03)
 * Go back to using Fs1PasswordConnect. The official action does not work on Windows.
 
 ## New in 3.3 (Released 2022/09/09)
