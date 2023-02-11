@@ -166,22 +166,6 @@ module Test =
             |> Seq.toList
             |> Seq.tryPick id
 
-        let testResults = query {
-            for _project in testProjects do
-            let _projectName = Path.GetFileNameWithoutExtension _project
-            let _projectPath = Path.getDirectory _project
-            let _outputPath = Path.combine _projectPath "bin/Release"
-            let dllPath = Path.combine _outputPath $"{_projectName}.dll"
-            let testExecutionFile = Path.combine _outputPath "TestExecution.json"
-            where (File.Exists dllPath && File.Exists testExecutionFile)
-            let output = $"./testResults/{_projectName}.html"
-            select (dllPath, testExecutionFile, output)
-        }
-
-        for dllPath, testExecutionFile, output in testResults do
-            DotNet.exec id "livingdoc" $"test-assembly {dllPath} -t {testExecutionFile} -o {output}"
-            |> ignore
-
         match testException with
         | None -> ()
         | Some e -> raise e
