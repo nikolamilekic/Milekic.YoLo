@@ -163,6 +163,7 @@ module Test =
                         project
                     None
                 with e -> Some e)
+            |> Seq.toList
             |> Seq.tryPick id
 
         let testResults = query {
